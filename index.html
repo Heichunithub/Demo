@@ -1,0 +1,2936 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sleep Pet 星光宿伴 - 睡眠能量寵物 | Starlight Companion</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@500;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            nightDark: '#080C16',
+            nightSurface: '#101626',
+            nightCard: '#161F36',
+            starGold: '#FBBF24',
+            starAmber: '#F59E0B',
+            lumiPurple: '#8B5CF6',
+            lumiLavender: '#DDD6FE',
+            slumberBlue: '#38BDF8',
+            snoozeIndigo: '#818CF8',
+            dozeEmerald: '#34D399',
+            dreamRose: '#FB7185',
+          },
+          animation: {
+            'float-soft': 'floatSoft 3s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 2.5s ease-in-out infinite',
+            'breathe': 'breathe 4s ease-in-out infinite',
+            'spin-slow': 'spin 12s linear infinite',
+            'wiggle': 'wiggle 0.5s ease-in-out infinite',
+          },
+          keyframes: {
+            floatSoft: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-6px)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.4', transform: 'scale(1)' },
+              '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+            },
+            breathe: {
+              '0%, 100%': { transform: 'scale(1)' },
+              '50%': { transform: 'scale(1.035)' },
+            },
+            wiggle: {
+              '0%, 100%': { transform: 'rotate(-3deg)' },
+              '50%': { transform: 'rotate(3deg)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+      background-color: #060911;
+      color: #F8FAFC;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-nav {
+      background: rgba(16, 22, 38, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-panel {
+      background: rgba(22, 31, 54, 0.72);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .glow-gold {
+      box-shadow: 0 0 24px -2px rgba(245, 158, 11, 0.4);
+    }
+    .glow-purple {
+      box-shadow: 0 0 28px -4px rgba(139, 92, 246, 0.35);
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center bg-black overflow-x-hidden">
+
+  <!-- 背景動態星空畫布 -->
+  <canvas id="bgStarsCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- 手機體驗容器 (Mobile App Shell) -->
+  <div class="relative z-10 w-full max-w-md min-h-screen flex flex-col justify-between bg-nightDark shadow-2xl border-x border-slate-900 overflow-hidden pb-20">
+
+    <!-- ==================== TOP STATUS BAR ==================== -->
+    <header class="sticky top-0 z-30 px-4 py-3 bg-nightDark/80 backdrop-blur-md border-b border-slate-800/80">
+      <div class="flex items-center justify-between">
+        <!-- 露米等級與頭像 -->
+        <div class="flex items-center gap-2.5">
+          <div class="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-lumiPurple to-starGold p-0.5 shadow-md">
+            <div class="w-full h-full bg-nightSurface rounded-[14px] flex items-center justify-center text-xl">
+              🐰
+            </div>
+            <div class="absolute -bottom-1 -right-1 bg-amber-500 text-slate-950 font-black text-[9px] px-1 rounded-full border border-nightDark">
+              Lv.<span id="topPetLevel">1</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-sm tracking-tight text-white cursor-pointer hover:text-amber-300 transition-colors" id="topPetName" onclick="editPetName()" title="點擊修改寵物名稱">星光露米 Lumi</span>
+              <button onclick="editPetName()" class="text-slate-400 hover:text-amber-300 text-xs p-0.5">
+                <i data-lucide="pencil" class="w-3 h-3"></i>
+              </button>
+              <span class="text-[10px] px-1.5 py-0.2 rounded-md bg-purple-500/20 text-purple-300 font-bold border border-purple-500/30" data-i18n="badgeMainCamp">
+                主營地
+              </span>
+            </div>
+            <!-- 能量蓄積 -->
+            <div class="flex items-center gap-1 text-[11px] text-slate-400 font-semibold">
+              <i data-lucide="zap" class="w-3 h-3 text-starAmber fill-starAmber"></i>
+              <span data-i18n="lblBaseEnergy">基礎能量:</span>
+              <span class="text-amber-300 font-black" id="topBaseEnergy">1,250</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右側資源：語言切換、星光點數 & 音效按鈕 -->
+        <div class="flex items-center gap-1.5">
+          <!-- 語言切換按鈕 -->
+          <button onclick="toggleLanguage()" id="langToggleBtn" class="flex items-center gap-1 bg-slate-900/90 px-2 py-1 rounded-full border border-purple-500/40 text-[11px] font-black text-purple-300 hover:text-white transition-all shadow-inner">
+            <i data-lucide="languages" class="w-3.5 h-3.5"></i>
+            <span id="langLabel">EN</span>
+          </button>
+
+          <div class="flex items-center gap-1 bg-slate-900/90 px-2.5 py-1 rounded-full border border-amber-500/30 text-xs font-black text-amber-300 shadow-inner">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-starGold fill-starGold animate-spin-slow"></i>
+            <span id="topStarlightPoints">380</span>
+          </div>
+          <button onclick="toggleAudioEngine()" id="audioToggleBtn" class="w-8 h-8 rounded-full bg-slate-800/90 hover:bg-slate-700 border border-slate-700 flex items-center justify-center text-slate-300 transition-colors">
+            <i data-lucide="volume-2" id="audioIcon" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ==================== MAIN VIEWS CONTAINER ==================== -->
+    <main class="flex-1 overflow-y-auto no-scrollbar p-4 space-y-4">
+
+      <!-- ==================== TAB 1: 主營地 (CAMP / HOME) ==================== -->
+      <section id="view-camp" class="space-y-4">
+
+        <!-- 睡眠目標與能量轉換看板 -->
+        <div class="glass-panel rounded-3xl p-4 text-center relative overflow-hidden border border-purple-500/20">
+          <div class="absolute -top-10 -right-10 w-28 h-28 bg-lumiPurple/20 rounded-full blur-2xl pointer-events-none"></div>
+          <div class="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-1">
+            <i data-lucide="target" class="w-3.5 h-3.5 text-starGold"></i>
+            <span data-i18n="campTargetTitle">今夜睡眠能量目標</span>
+          </div>
+          <div class="mt-2 flex items-baseline justify-center gap-2">
+            <span class="text-xs text-slate-400" data-i18n="campTargetFullScore">達成滿分</span>
+            <span class="text-3xl font-black bg-gradient-to-r from-amber-200 via-amber-300 to-yellow-400 bg-clip-text text-transparent" data-i18n="camp100Pts">
+              100 分
+            </span>
+            <span class="text-xs text-slate-400" data-i18n="campTargetGrant">➔ 提供露米</span>
+            <span class="text-2xl font-black text-amber-300" id="previewRewardEnergy">+1,000</span>
+            <span class="text-xs font-bold text-amber-400" data-i18n="campEnergyUnit">⚡ 基礎能量</span>
+          </div>
+          <div class="text-[10px] text-slate-400 mt-1.5 flex items-center justify-center gap-1.5 bg-slate-900/60 py-1 px-3 rounded-full mx-auto w-fit border border-slate-800">
+            <span data-i18n="campStarTip">✨ 睡眠獲得的星星可用於餵食漿果</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-emerald-300 font-semibold" data-i18n="campDormMultiplierNotice">全寢達標可享 2.0x (+2,000 ⚡)</span>
+          </div>
+        </div>
+
+        <!-- 露米精靈動態畫布卡片 (Canvas Interactive Pet) -->
+        <div class="glass-panel rounded-3xl p-4 relative overflow-hidden flex flex-col items-center justify-center border border-slate-800">
+          <!-- 營地環境標籤 (支援自訂地點) -->
+          <div class="w-full flex items-center justify-between text-xs px-1">
+            <div class="flex items-center gap-1.5 text-slate-300 font-medium">
+              <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span id="campLocationLabel" class="cursor-pointer hover:text-emerald-300 transition-colors" onclick="editLocationName()">402 寢室星光草甸</span>
+              <button onclick="editLocationName()" class="text-slate-400 hover:text-emerald-300 p-0.5" title="更改地點名稱">
+                <i data-lucide="pencil" class="w-3 h-3"></i>
+              </button>
+            </div>
+            <span id="petMoodPill" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[10px] border border-emerald-500/30">
+              心情: 精神滿滿 😊
+            </span>
+          </div>
+
+          <!-- 露米動態對話氣泡與抱抱互動箱 -->
+          <div id="petDialogueBubble" class="w-full mt-2 transition-all duration-300">
+            <div class="glass-panel bg-nightSurface/90 border border-purple-500/30 rounded-2xl p-2.5 shadow-lg flex items-start gap-2.5">
+              <span id="petMoodIcon" class="text-xl select-none">🐰</span>
+              <div class="flex-1 min-w-0">
+                <p id="petDialogueText" class="text-xs text-amber-100 font-medium leading-relaxed">
+                  「呼嚕嚕~ 主人今天也要好好照顧自己喔！記得早點陪我睡覺充電~」
+                </p>
+              </div>
+              <button onclick="hugPet()" class="px-2.5 py-1.5 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-[11px] text-pink-300 font-bold shrink-0 active:scale-95 transition-all flex items-center gap-1 shadow-sm" title="抱抱露米給予安慰">
+                <span data-i18n="btnHug">🤗 抱抱</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Canvas 容器 -->
+          <div class="relative w-full h-64 flex items-center justify-center my-1">
+            <canvas id="lumiPetCanvas" width="300" height="260" class="cursor-pointer max-w-full drop-shadow-2xl" onclick="handlePetTap(event)"></canvas>
+            
+            <!-- 互動漂浮文字容器 -->
+            <div id="petFloatingFx" class="absolute inset-0 pointer-events-none"></div>
+
+            <!-- 點擊互動提示標籤 -->
+            <div class="absolute bottom-1 bg-slate-950/70 backdrop-blur-sm px-3 py-0.5 rounded-full border border-slate-800 text-[10px] text-slate-400 flex items-center gap-1">
+              <span data-i18n="campInteractionTip">👆 撫摸或抱抱露米・使用睡眠星星購買漿果投餵</span>
+            </div>
+          </div>
+
+          <!-- 露米生命值 (HP/Vitality) 與等級進度條 -->
+          <div class="w-full space-y-2 mt-1">
+            <!-- 露米生命值 (睡眠充足度) -->
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-400 text-[11px] flex items-center gap-1">
+                  <i data-lucide="heart" class="w-3 h-3 text-rose-400 fill-rose-400"></i>
+                  <span data-i18n="lblVitalityHp">露米生命力 (Vitality HP)</span>
+                </span>
+                <span class="text-emerald-300 font-bold text-[11px]" id="petHpLabel">100 / 100</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/60">
+                <div id="petHpFill" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <!-- 露米等級進度 EXP -->
+            <div>
+              <div class="flex justify-between text-xs font-semibold mb-1">
+                <span class="text-slate-400 text-[11px]" data-i18n="lblExpProgress">露米等級進度 EXP</span>
+                <span class="text-purple-300 font-bold text-[11px]" id="petExpLabel">420 / 600</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700/60">
+                <div id="petExpFill" class="h-full bg-gradient-to-r from-lumiPurple to-amber-400 rounded-full transition-all duration-500" style="width: 70%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 餵食與烹飪互動按鈕組 -->
+          <div class="grid grid-cols-2 gap-2.5 w-full mt-4">
+            <button onclick="feedBerries()" class="py-2.5 px-3 rounded-2xl bg-gradient-to-b from-amber-500/20 to-amber-600/30 hover:from-amber-500/30 hover:to-amber-600/40 border border-amber-500/40 text-amber-200 font-bold text-xs flex flex-col items-center justify-center gap-0.5 shadow-md active:scale-95 transition-all">
+              <div class="flex items-center gap-1.5">
+                <span class="text-base">🫐</span>
+                <span data-i18n="btnFeedBerry">投餵星光漿果</span>
+              </div>
+              <span class="text-[10px] text-amber-300 font-normal" data-i18n="subFeedBerry">消耗 10 ⭐ (+80 ⚡ 基礎能量)</span>
+            </button>
+            <button onclick="cookSleepMeal()" class="py-2.5 px-3 rounded-2xl bg-gradient-to-b from-pink-500/20 to-pink-600/30 hover:from-pink-500/30 hover:to-pink-600/40 border border-pink-500/40 text-pink-200 font-bold text-xs flex flex-col items-center justify-center gap-0.5 shadow-md active:scale-95 transition-all">
+              <div class="flex items-center gap-1.5">
+                <span class="text-base">🍲</span>
+                <span data-i18n="btnCookSoup">製作安神暖湯</span>
+              </div>
+              <span class="text-[10px] text-pink-300 font-normal" data-i18n="subCookSoup">消耗 35 ⭐ (+300 ⚡ 基礎能量)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 核心物理睡眠按鈕 (Big Pokémon Sleep Start Button) -->
+        <div class="pt-2">
+          <button onclick="openNightSleepMode()" class="w-full py-4 rounded-3xl bg-gradient-to-r from-indigo-600 via-lumiPurple to-amber-500 hover:from-indigo-500 hover:to-amber-400 text-white font-black text-base tracking-wider shadow-xl shadow-lumiPurple/25 flex items-center justify-center gap-3 transform active:scale-95 transition-all glow-purple">
+            <i data-lucide="moon" class="w-6 h-6 text-amber-300 fill-amber-300 animate-pulse"></i>
+            <span data-i18n="btnStartSleepTracking">準備睡覺 (開始睡眠追蹤)</span>
+          </button>
+          <p class="text-center text-[10px] text-slate-500 mt-2" data-i18n="sleepNoticeFooter">
+            ※ 點擊後手機進入深色省電睡眠模式，請將手機安放枕邊並放下手機
+          </p>
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 2: 宿舍花園與室友羈絆 (SHARED DORM GARDEN) ==================== -->
+      <section id="view-garden" class="space-y-4 hidden">
+        
+        <!-- 全寢羈絆狀態卡 -->
+        <div class="glass-panel rounded-3xl p-4 border border-indigo-500/30">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center">
+                <i data-lucide="users" class="w-4 h-4"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-black text-white" id="gardenHeaderTitle">402 寢室星光連線</h3>
+                <span class="text-[10px] text-slate-400" data-i18n="dormComboSubtitle">全員按時就寢・共享雙倍能量加成</span>
+              </div>
+            </div>
+            <!-- 加成倍率勳章 -->
+            <div id="dormBoostPill" class="px-2.5 py-1 rounded-full text-[11px] font-black flex items-center gap-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              <i data-lucide="zap" class="w-3 h-3 fill-emerald-400"></i>
+              <span id="dormBoostText">2.0x 雙倍加成中！</span>
+            </div>
+          </div>
+
+          <!-- 新增室友按鈕與清單 -->
+          <div class="flex justify-between items-center mb-2 px-1">
+            <span class="text-[11px] font-bold text-slate-300" data-i18n="lblRoommatesListTitle">室友與寵物即時狀態</span>
+            <button onclick="promptAddRoommate()" class="px-2.5 py-1 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-500/40 text-[11px] font-bold flex items-center gap-1 transition-all">
+              <i data-lucide="user-plus" class="w-3 h-3"></i>
+              <span data-i18n="btnAddRoommate">新增室友/搭子</span>
+            </button>
+          </div>
+
+          <!-- 室友狀態清單 -->
+          <div class="space-y-2" id="roommateStatusList">
+            <!-- JS 生成 -->
+          </div>
+
+          <!-- 拯救熬夜室友機制 -->
+          <div class="mt-3 pt-3 border-t border-slate-800 flex items-center justify-between gap-2">
+            <span class="text-[10px] text-slate-400" data-i18n="pillowRescueNotice">室友深夜刷屏將導致花園能量流失</span>
+            <button onclick="sendSleepPillow()" class="px-3 py-1.5 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 border border-pink-500/40 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95">
+              <span data-i18n="btnSendPillow">🛏️ 發送拍拍小睡枕</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 宿舍花園畫布 (自由遊走動畫與造景) -->
+        <div class="glass-panel rounded-3xl p-4 border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="flower-2" class="w-4 h-4 text-emerald-400"></i>
+              <h4 class="text-xs font-extrabold text-white">
+                <span data-i18n="lblGardenBloom">花園繁茂度:</span>
+                <span class="text-emerald-300" id="gardenBloomLevel">Lv.3 螢火綠洲</span>
+              </h4>
+            </div>
+            <span class="text-[10px] text-amber-300 font-bold" id="gardenDecorCount">已解鎖 4 件飾品</span>
+          </div>
+
+          <!-- 已擁有花園造景擺設架 -->
+          <div class="bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800/80">
+            <div class="text-[10px] font-bold text-slate-400 mb-1.5 flex items-center justify-between">
+              <span class="flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3 text-starGold"></i>
+                <span data-i18n="lblOwnedDecors">已購置的花園造景擺設（點綴於下方草甸中）</span>
+              </span>
+              <span class="text-emerald-400 font-bold text-[9px]" id="ownedDecorsSummary">4 件展示中</span>
+            </div>
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5" id="ownedDecorsListContainer">
+              <!-- JS 動態生成已購買飾物徽章 -->
+            </div>
+          </div>
+
+          <!-- 花園動態畫布：全體寵物自由漫遊遊走與飾品投影 -->
+          <div class="w-full h-56 rounded-2xl bg-gradient-to-b from-slate-950 to-indigo-950/60 border border-slate-800 relative overflow-hidden">
+            <canvas id="gardenVisualCanvas" width="380" height="224" class="w-full h-full block cursor-pointer"></canvas>
+            <div class="absolute bottom-2 left-2 text-[10px] bg-slate-900/85 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-slate-300 border border-slate-700 flex items-center gap-1 shadow-md">
+              <span data-i18n="gardenCanvasRoamTip">🐾 寵物們正在各自喜歡的造景旁散步嬉戲</span>
+            </div>
+          </div>
+
+          <!-- 花園現正漫步寵物圖鑑列 -->
+          <div class="bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800/80">
+            <div class="text-[10px] font-bold text-slate-400 mb-1.5 flex items-center gap-1">
+              <i data-lucide="heart" class="w-3 h-3 text-rose-400"></i>
+              <span data-i18n="lblRoamingPetsTitle">花園漫步夥伴（點擊花園可觀看牠們漫遊打盹）</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1.5 text-center text-xs" id="roamingPetsOverview">
+              <!-- JS 動態生成夥伴卡片 -->
+            </div>
+          </div>
+
+          <!-- 花園工坊飾品購買 (含一般與昂貴頂級造景) -->
+          <div class="pt-1">
+            <div class="flex items-center justify-between mb-2 px-1">
+              <span class="text-[11px] font-bold text-slate-300 flex items-center gap-1">
+                <i data-lucide="store" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span data-i18n="lblGardenShopTitle">星光花園工坊（儲備星光以添置珍稀造景）</span>
+              </span>
+              <span class="text-[10px] text-amber-300 font-bold">
+                <span data-i18n="lblCurrentHolding">當前持有：</span>
+                <span id="gardenShopCurrentStars">380</span> ⭐
+              </span>
+            </div>
+            <div class="grid grid-cols-3 gap-2" id="gardenShopItems">
+              <!-- JS 動態生成花園工坊項目 -->
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 3: 睡姿圖鑑 (SLEEP STYLE DEX) ==================== -->
+      <section id="view-dex" class="space-y-4 hidden">
+        
+        <!-- 圖鑑收集概覽 (以基礎能量總數為核心解鎖標準) -->
+        <div class="glass-panel rounded-3xl p-4 border border-slate-800 flex items-center justify-between">
+          <div>
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" data-i18n="lblDexProgressTitle">睡姿圖鑑研究進度</div>
+            <div class="text-xl font-black text-white mt-0.5">
+              <span class="text-amber-300" id="dexUnlockedCount">4</span> / <span id="dexTotalCount">12</span> <span data-i18n="lblDexUnit">種睡姿</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-1">
+              <span data-i18n="lblAccumulatedEnergy">目前累積基礎能量：</span>
+              <span class="text-amber-300 font-bold" id="dexCurrentEnergy">1,250</span> ⚡
+            </div>
+          </div>
+          <div class="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col items-center justify-center text-amber-300">
+            <i data-lucide="camera" class="w-5 h-5 mb-0.5"></i>
+            <span class="text-[9px] font-extrabold" id="dexPercentage">33%</span>
+          </div>
+        </div>
+
+        <!-- 睡眠類型切換篩選 -->
+        <div class="grid grid-cols-4 gap-1.5 p-1 bg-slate-900 rounded-2xl border border-slate-800 text-xs font-bold">
+          <button onclick="filterDex('all')" id="dex-filter-all" class="dex-filter-btn py-1.5 rounded-xl bg-lumiPurple text-white" data-i18n="filterAll">全部</button>
+          <button onclick="filterDex('slumbering')" id="dex-filter-slumbering" class="dex-filter-btn py-1.5 rounded-xl text-slate-400 hover:text-white" data-i18n="filterSlumbering">深深入眠</button>
+          <button onclick="filterDex('snoozing')" id="dex-filter-snoozing" class="dex-filter-btn py-1.5 rounded-xl text-slate-400 hover:text-white" data-i18n="filterSnoozing">安安穩穩</button>
+          <button onclick="filterDex('dozing')" id="dex-filter-dozing" class="dex-filter-btn py-1.5 rounded-xl text-slate-400 hover:text-white" data-i18n="filterDozing">淺淺入夢</button>
+        </div>
+
+        <!-- 睡姿照片牆網格 (Dex Grid) -->
+        <div class="grid grid-cols-2 gap-3" id="sleepStyleDexGrid">
+          <!-- 由 JS 依據基礎能量解鎖狀態渲染相卡 -->
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 4: 睡眠研究日誌 (SLEEP STATS) ==================== -->
+      <section id="view-stats" class="space-y-4 hidden">
+        
+        <!-- 平均睡眠品質與分數 -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="glass-panel rounded-3xl p-4 border border-slate-800">
+            <span class="text-[10px] text-slate-400 font-bold" data-i18n="lblAvgSleepScore">本週平均睡眠分數</span>
+            <div class="text-2xl font-black text-amber-300 mt-1 flex items-baseline gap-1">
+              <span>92.4</span>
+              <span class="text-xs text-slate-400 font-normal">/ 100</span>
+            </div>
+            <span class="text-[10px] text-emerald-400 flex items-center gap-0.5 mt-1 font-semibold">
+              <i data-lucide="trending-up" class="w-3 h-3"></i>
+              <span data-i18n="lblScoreImprovement">較上週提高 14%</span>
+            </span>
+          </div>
+          <div class="glass-panel rounded-3xl p-4 border border-slate-800">
+            <span class="text-[10px] text-slate-400 font-bold" data-i18n="lblStreakTitle">連續準時就寢</span>
+            <div class="text-2xl font-black text-purple-300 mt-1 flex items-baseline gap-1">
+              <span id="statsStreakDays">5</span>
+              <span class="text-xs text-slate-400 font-normal" data-i18n="lblStreakDaysUnit">天達成</span>
+            </div>
+            <span class="text-[10px] text-amber-400 flex items-center gap-0.5 mt-1 font-semibold">
+              <i data-lucide="award" class="w-3 h-3"></i>
+              <span data-i18n="lblStreakBadge">解鎖「夜行守護者」</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- 睡眠歷史記錄卡片 -->
+        <div class="glass-panel rounded-3xl p-4 border border-slate-800">
+          <h4 class="text-xs font-black text-white mb-3 flex items-center gap-1.5">
+            <i data-lucide="history" class="w-4 h-4 text-lumiPurple"></i>
+            <span data-i18n="lblRecentLogsTitle">最近睡眠研究紀錄</span>
+          </h4>
+          <div class="space-y-2.5" id="sleepHistoryLogs">
+            <!-- 由 JS 渲染紀錄 -->
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- ==================== BOTTOM TAB BAR ==================== -->
+    <nav class="fixed bottom-0 z-40 w-full max-w-md glass-nav px-3 py-2 flex items-center justify-around">
+      <button onclick="switchTab('camp')" id="nav-btn-camp" class="flex flex-col items-center gap-0.5 text-amber-400">
+        <i data-lucide="tent" class="w-5 h-5"></i>
+        <span class="text-[10px] font-extrabold tracking-tight" data-i18n="tabCamp">營地</span>
+      </button>
+      <button onclick="switchTab('garden')" id="nav-btn-garden" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200">
+        <i data-lucide="flower" class="w-5 h-5"></i>
+        <span class="text-[10px] font-extrabold tracking-tight" data-i18n="tabGarden">宿舍花園</span>
+      </button>
+      <button onclick="switchTab('dex')" id="nav-btn-dex" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200">
+        <i data-lucide="book-heart" class="w-5 h-5"></i>
+        <span class="text-[10px] font-extrabold tracking-tight" data-i18n="tabDex">睡姿圖鑑</span>
+      </button>
+      <button onclick="switchTab('stats')" id="nav-btn-stats" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-slate-200">
+        <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+        <span class="text-[10px] font-extrabold tracking-tight" data-i18n="tabStats">睡眠研究</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <!-- ==================== IMMERSIVE NIGHT SLEEP SCREEN (睡眠中全螢幕監測) ==================== -->
+  <div id="nightSleepScreen" class="fixed inset-0 z-50 bg-[#05070D] flex flex-col justify-between p-6 hidden select-none">
+    
+    <!-- 頂部：暗色省電狀態、時間與退出按鈕 -->
+    <div class="flex items-center justify-between text-xs text-slate-500 pt-2">
+      <div class="flex items-center gap-1.5">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span class="font-bold text-slate-400" data-i18n="nightMonitoringActive">睡眠監測中 (OLED 防藍光省電)</span>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <div class="text-[11px] font-mono text-slate-400" id="sleepClockCurrent">23:30</div>
+        <!-- 中途退出回到營地按鈕 -->
+        <button onclick="promptExitSleepEarly()" class="px-2.5 py-1 rounded-xl bg-slate-900/90 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-800 hover:border-rose-500/40 text-[10px] font-bold transition-all flex items-center gap-1">
+          <i data-lucide="arrow-left" class="w-3 h-3"></i>
+          <span data-i18n="btnExitSleep">退出回到營地</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 中間：核心計時與睡眠露米呼吸動畫 -->
+    <div class="flex flex-col items-center justify-center my-auto text-center space-y-6">
+      
+      <!-- 睡眠光環與露米睡姿畫布 -->
+      <div class="relative w-64 h-64 flex items-center justify-center">
+        <!-- 柔和外光暈環 -->
+        <div class="absolute inset-0 rounded-full border border-purple-500/10 animate-breathe"></div>
+        <div class="absolute inset-6 rounded-full border border-amber-500/15 animate-pulse-glow"></div>
+        <!-- 畫布 -->
+        <canvas id="sleepingPetCanvas" width="220" height="220" class="relative z-10"></canvas>
+      </div>
+
+      <!-- 睡眠已累積時間 -->
+      <div>
+        <span class="text-[11px] font-bold tracking-widest text-slate-500 uppercase" data-i18n="lblTimeAsleep">已安睡時長</span>
+        <div class="text-4xl font-black font-mono tracking-tight text-white mt-1" id="sleepStopwatchText">
+          00:00:00
+        </div>
+      </div>
+
+      <!-- 當前睡眠質量判定狀態提示 -->
+      <div class="bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-800 text-xs text-slate-300 flex items-center gap-2">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+        <span><span data-i18n="lblCurrentStatus">目前狀態：</span><strong class="text-sky-300" id="liveSleepTypeIndicator">深深入眠 (Slumbering)</strong></span>
+      </div>
+
+      <div class="text-[11px] text-slate-500 max-w-xs" data-i18n="nightSleepNotice">
+        🌙 放下手機安睡中。請勿切換分頁或頻繁觸碰螢幕，以免驚擾露米！
+      </div>
+
+    </div>
+
+    <!-- 底部：起床喚醒按鈕 (Wake Up Button) -->
+    <div class="w-full max-w-xs mx-auto pb-4">
+      <button onclick="endSleepAndStartMorningResearch()" class="w-full py-4 rounded-3xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2 transform active:scale-95 transition-all">
+        <i data-lucide="sunrise" class="w-5 h-5 text-slate-950"></i>
+        <span data-i18n="btnWakeUpAndSettle">起床！結束睡眠並結算基礎能量</span>
+      </button>
+      <p class="text-center text-[10px] text-slate-600 mt-2" data-i18n="subWakeUpAndSettle">
+        長按或點擊以結算今夜睡眠分數與基礎能量獲取
+      </p>
+    </div>
+
+  </div>
+
+  <!-- ==================== EARLY EXIT CONFIRM MODAL (中途退出睡眠確認警示) ==================== -->
+  <div id="earlyExitConfirmModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-6 hidden">
+    <div class="max-w-sm w-full bg-slate-900 border border-amber-500/50 rounded-3xl p-5 text-center space-y-4 shadow-2xl">
+      <div class="w-16 h-16 mx-auto rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-3xl">
+        🥺
+      </div>
+      <div>
+        <h3 class="text-base font-black text-white" data-i18n="modalEarlyExitTitle">確定要現在退出回到營地嗎？</h3>
+        <p class="text-xs text-slate-300 mt-1.5 leading-relaxed" data-i18n="modalEarlyExitDesc">
+          露米需要你穩定的陪伴入眠來維持體力。若現在中斷睡眠，會被判定為「深夜未入睡/玩手機」，露米將流失 -25 HP 生命值 與 -60 ⚡ 基礎能量！
+        </p>
+      </div>
+      <div class="space-y-2">
+        <button onclick="cancelExitSleepEarly()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs tracking-wide shadow-md" data-i18n="btnKeepSleeping">
+          繼續安睡（陪露米好眠）
+        </button>
+        <button onclick="confirmExitSleepEarlyAction()" class="w-full py-2.5 rounded-2xl bg-slate-800 hover:bg-rose-950/80 text-rose-300 hover:text-rose-200 border border-slate-700 text-xs font-semibold transition-all" data-i18n="btnConfirmExit">
+          放棄睡眠・確認回到營地
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PET REBIRTH / EXHAUSTION MODAL (能量耗竭退化重育警報) ==================== -->
+  <div id="petRebirthModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-lg flex items-center justify-center p-6 hidden">
+    <div class="max-w-sm w-full bg-slate-950 border-2 border-rose-500 rounded-3xl p-6 text-center space-y-4 shadow-2xl animate-wiggle">
+      <div class="w-20 h-20 mx-auto rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-4xl">
+        🥚
+      </div>
+      <div>
+        <span class="text-[10px] font-black uppercase tracking-wider text-rose-400 bg-rose-500/10 px-3 py-0.5 rounded-full border border-rose-500/20" data-i18n="badgePetExhausted">
+          ⚠️ 露米體力枯竭
+        </span>
+        <h3 class="text-lg font-black text-white mt-1.5" data-i18n="rebirthModalTitle">露米退化成了【星光幼萌蛋】！</h3>
+        <p class="text-xs text-rose-200/80 mt-2 leading-relaxed" data-i18n="rebirthModalDesc">
+          因為長期缺乏充足睡眠，露米的生命值降為 0，體力不支進入了休眠保護狀態，等級已退化回 Lv.1！今晚請務必準時放下手機入睡，唯有健康的睡眠才能重新喚醒並孵化露米！
+        </p>
+      </div>
+      <button onclick="closeRebirthModal()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 text-white font-black text-xs tracking-wider shadow-lg" data-i18n="btnRebirthAcknowledge">
+        我記住了，今晚一定準時睡覺拯救露米！
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== NIGHTMARE WARNING MODAL (玩手機/切屏警告) ==================== -->
+  <div id="nightmareAlertModal" class="fixed inset-0 z-50 bg-red-950/85 backdrop-blur-md flex items-center justify-center p-6 hidden">
+    <div class="max-w-sm w-full bg-slate-900 border-2 border-rose-500 rounded-3xl p-5 text-center space-y-4 shadow-2xl animate-wiggle">
+      
+      <div class="w-16 h-16 mx-auto rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-3xl">
+        😱
+      </div>
+
+      <div class="space-y-1">
+        <span class="text-[10px] font-extrabold text-rose-400 uppercase tracking-widest bg-rose-500/10 px-2.5 py-0.5 rounded-full border border-rose-500/20" data-i18n="badgeNightmareAlert">
+          ⚠️ 檢測到深夜手機藍光！
+        </span>
+        <h3 class="text-lg font-black text-white mt-1" data-i18n="nightmareAlertTitle">露米正在做噩夢！星光消散中...</h3>
+        <p class="text-xs text-rose-200/80 leading-relaxed" data-i18n="nightmareAlertDesc">
+          您剛才切換了應用或頻繁點擊了螢幕！露米感應到了強烈的藍光刺激，睡眠類型正大幅滑向「淺淺入夢」，睡意星光之力正在流失！
+        </p>
+      </div>
+
+      <div class="p-3 bg-slate-950/80 rounded-2xl border border-slate-800 text-xs text-slate-300" data-i18n="nightmareDormNotice">
+        寢室連帶警報：室友的寵物也感受到了驚擾！
+      </div>
+
+      <button onclick="rescuePetFromNightmare()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 text-white font-black text-xs tracking-wider shadow-lg shadow-rose-500/30 flex items-center justify-center gap-2">
+        <i data-lucide="shield" class="w-4 h-4"></i>
+        <span data-i18n="btnRescuePet">立即放下手機・安撫露米入眠</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MORNING RESEARCH MODAL (晨間睡姿研究結算) ==================== -->
+  <div id="morningResearchModal" class="fixed inset-0 z-50 bg-nightDark/95 backdrop-blur-xl flex flex-col justify-between p-5 overflow-y-auto hidden">
+    
+    <!-- 頂部標題與研究等級 -->
+    <div class="text-center pt-2">
+      <div class="inline-flex items-center gap-1 text-[11px] font-extrabold text-amber-300 bg-amber-500/10 px-3 py-0.5 rounded-full border border-amber-500/30 mb-1">
+        <i data-lucide="sun" class="w-3 h-3 text-amber-400"></i>
+        <span data-i18n="morningBadge">晨間睡眠研究 (Morning Sleep Research)</span>
+      </div>
+      <h2 class="text-2xl font-black text-white" data-i18n="morningTitle">今日睡眠成果結算</h2>
+    </div>
+
+    <!-- 睡眠分數與基礎能量卡片 -->
+    <div class="space-y-3 my-auto max-w-sm mx-auto w-full">
+      
+      <!-- 分數與睡眠健康診斷看板 -->
+      <div class="glass-panel rounded-3xl p-4 text-center border border-slate-700 space-y-2">
+        <div class="flex items-center justify-between text-xs text-slate-400 px-2">
+          <span><span data-i18n="lblSleepDuration">實測睡眠時長:</span> <strong class="text-white" id="reportSleepDuration">0小時12分</strong></span>
+          <span><span data-i18n="lblInterruptions">中斷滑手機:</span> <strong class="text-white" id="reportInterruptionCount">0 次</strong></span>
+        </div>
+        
+        <div class="py-1">
+          <span class="text-xs font-bold text-slate-400" data-i18n="lblOverallScore">本次睡眠綜合評分</span>
+          <div class="text-5xl font-black text-amber-300 tracking-tight" id="reportSleepScore">
+            12 <span class="text-base text-slate-400" data-i18n="unitPts">分</span>
+          </div>
+          <!-- 睡眠等級評價徽章 -->
+          <div class="mt-1">
+            <span id="reportSleepGradeBadge" class="inline-block px-3 py-0.5 rounded-full text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/30">
+              等級 F（極短暫小憩/未入睡）
+            </span>
+          </div>
+        </div>
+
+        <!-- 睡眠醫學與習慣診斷反饋文字 -->
+        <div class="p-2.5 rounded-2xl bg-slate-900/80 border border-slate-800 text-left">
+          <div class="text-[10px] font-bold text-slate-400 mb-0.5 flex items-center gap-1">
+            <i data-lucide="stethoscope" class="w-3 h-3 text-purple-400"></i>
+            <span data-i18n="lblDiagnosisTitle">睡眠品質診斷分析</span>
+          </div>
+          <p id="reportSleepDiagnosisText" class="text-[11px] text-slate-300 leading-relaxed">
+            檢測到睡眠時間過短，大腦未能經歷完整的深層睡眠週期，體力無法修復。
+          </p>
+        </div>
+
+        <!-- 判定類型徽章 -->
+        <div class="flex items-center justify-center gap-2 pt-0.5">
+          <span class="text-[11px] text-slate-400" data-i18n="lblSleepTypeTitle">睡眠型態：</span>
+          <div class="inline-block px-2.5 py-0.5 rounded-full text-xs font-black" id="reportSleepTypeBadge">
+            淺淺入夢型 (Dozing)
+          </div>
+        </div>
+      </div>
+
+      <!-- 基礎能量與露米生命恢復結算看板 -->
+      <div class="glass-panel rounded-3xl p-4 border border-purple-500/30 text-center space-y-1.5">
+        <div class="text-[11px] font-bold text-slate-400" data-i18n="lblEnergyConversionTitle">
+          健康睡眠轉換 ➔ 露米基礎能量
+        </div>
+        <div class="text-xs text-slate-300">
+          <span data-i18n="lblScorePrefix">評分</span> <span id="reportCalcScore" class="font-bold text-amber-300">12</span> <span data-i18n="lblScoreSuffix">分</span> × <span id="reportCalcDormBonus">2.0x 全寢加成</span> =
+        </div>
+        <div class="text-3xl font-black text-transparent bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text" id="reportEarnedEnergy">
+          +240 ⚡ 基礎能量
+        </div>
+        <div class="text-[10px] font-bold text-emerald-400" id="reportHpRecoveryNotice">
+          💖 露米生命力恢復 +5 HP (目前 75/100)
+        </div>
+        <div class="text-[10px] text-slate-400">
+          <span data-i18n="lblTotalEnergyNotice">🌟 露米目前累積基礎能量達</span> <span id="reportNewTotalEnergy" class="text-amber-300 font-bold">1,490</span> ⚡
+        </div>
+      </div>
+
+      <!-- 晨間訪客拍照發現畫布 -->
+      <div class="glass-panel rounded-3xl p-3 border border-slate-800 text-center">
+        <div class="text-xs font-black text-white mb-2 flex items-center justify-between px-1">
+          <span class="flex items-center gap-1">
+            <i data-lucide="camera" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span data-i18n="lblVisitorFoundTitle">發現睡姿！點擊訪客拍照收錄圖鑑</span>
+          </span>
+          <span class="text-[10px] text-amber-300 font-bold" id="visitorFoundStatus">1 隻待研究</span>
+        </div>
+        <div class="w-full h-44 rounded-2xl bg-slate-950 border border-slate-800 relative overflow-hidden flex items-center justify-center">
+          <canvas id="morningVisitorsCanvas" width="320" height="180" class="cursor-pointer max-w-full" onclick="handleVisitorClick(event)"></canvas>
+          <div id="cameraFlashOverlay" class="absolute inset-0 bg-white opacity-0 pointer-events-none transition-opacity duration-200"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 領取獎勵並返回營地按鈕 -->
+    <div class="max-w-sm mx-auto w-full pt-2">
+      <button onclick="claimMorningResearchRewards()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-sm tracking-wide shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95 transition-all">
+        <i data-lucide="check-circle" class="w-5 h-5"></i>
+        <span><span data-i18n="lblClaimPrefix">收下研究獎勵 (</span><span id="claimStarsRewardText">+18 ⭐</span> <span data-i18n="lblClaimSuffix">睡眠星星)・返回營地</span></span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ==================== CUSTOM INPUT MODAL (取代原生 prompt，支援中英文) ==================== -->
+  <div id="customInputModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-6 hidden">
+    <div class="max-w-sm w-full bg-slate-900 border border-purple-500/50 rounded-3xl p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-lg">
+          ✏️
+        </div>
+        <h3 class="text-sm font-black text-white" id="customInputTitle">編輯名稱</h3>
+      </div>
+      <div>
+        <input type="text" id="customInputField" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-purple-400 transition-colors" maxlength="25">
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="cancelCustomInput()" class="flex-1 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-all" data-i18n="btnCancel">
+          取消
+        </button>
+        <button onclick="confirmCustomInput()" class="flex-1 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-md transition-all" data-i18n="btnConfirm">
+          確認
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT GAME ENGINE ==================== -->
+  <script>
+    // ---------- 雙語字典庫 (I18N DICTIONARY) ----------
+    const I18N = {
+      zh: {
+        langBtn: 'EN',
+        badgeMainCamp: '主營地',
+        lblBaseEnergy: '基礎能量:',
+        campTargetTitle: '今夜睡眠能量目標',
+        campTargetFullScore: '達成滿分',
+        camp100Pts: '100 分',
+        campTargetGrant: '➔ 提供露米',
+        campEnergyUnit: '⚡ 基礎能量',
+        campStarTip: '✨ 睡眠獲得的星星可用於餵食漿果',
+        campDormMultiplierNotice: '全寢達標可享 2.0x (+2,000 ⚡)',
+        campInteractionTip: '👆 撫摸或抱抱可讓露米開心・唯有早睡才能恢復生命力',
+        lblVitalityHp: '露米生命力 (Vitality HP)',
+        lblExpProgress: '露米等級進度 EXP',
+        btnFeedBerry: '投餵星光漿果',
+        subFeedBerry: '消耗 10 ⭐ (+80 ⚡ 基礎能量)',
+        btnCookSoup: '製作安神暖湯',
+        subCookSoup: '消耗 35 ⭐ (+300 ⚡ 基礎能量)',
+        btnStartSleepTracking: '準備睡覺 (開始睡眠追蹤)',
+        sleepNoticeFooter: '※ 點擊後手機進入深色省電睡眠模式，請將手機安放枕邊並放下手機',
+        btnHug: '🤗 抱抱',
+        dormComboSubtitle: '全員按時就寢・共享雙倍能量加成',
+        dormBoostActive: '2.0x 雙倍加成中！',
+        dormBoostInactive: '1.0x 正常模式',
+        lblRoommatesListTitle: '室友與寵物即時狀態',
+        btnAddRoommate: '新增室友/搭子',
+        pillowRescueNotice: '室友深夜刷屏將導致花園能量流失',
+        btnSendPillow: '🛏️ 發送拍拍小睡枕',
+        lblGardenBloom: '花園繁茂度:',
+        gardenBloomLv: 'Lv.3 螢火綠洲',
+        lblOwnedDecors: '已購置的花園造景擺設（點綴於下方草甸中）',
+        gardenCanvasRoamTip: '🐾 寵物們正在各自喜歡的造景旁散步嬉戲',
+        lblRoamingPetsTitle: '花園漫步夥伴（點擊花園可觀看牠們漫遊打盹）',
+        lblGardenShopTitle: '星光花園工坊（儲備星光以添置珍稀造景）',
+        lblCurrentHolding: '當前持有：',
+        btnDecorOwned: '已添置',
+        btnDecorBuy: '添置',
+        badgeLegendary: '夢幻',
+        lblDexProgressTitle: '睡姿圖鑑研究進度',
+        lblDexUnit: '種睡姿',
+        lblAccumulatedEnergy: '目前累積基礎能量：',
+        filterAll: '全部',
+        filterSlumbering: '深深入眠',
+        filterSnoozing: '安安穩穩',
+        filterDozing: '淺淺入夢',
+        unknownStyle: '？？？未知睡姿',
+        statusUnlocked: '✓ 已解鎖',
+        reqPrefix: '需',
+        lblAvgSleepScore: '本週平均睡眠分數',
+        lblScoreImprovement: '較上週提高 14%',
+        lblStreakTitle: '連續準時就寢',
+        lblStreakDaysUnit: '天達成',
+        lblStreakBadge: '解鎖「夜行守護者」',
+        lblRecentLogsTitle: '最近睡眠研究紀錄',
+        tabCamp: '營地',
+        tabGarden: '宿舍花園',
+        tabDex: '睡姿圖鑑',
+        tabStats: '睡眠研究',
+        nightMonitoringActive: '睡眠監測中 (OLED 防藍光省電)',
+        btnExitSleep: '退出回到營地',
+        lblTimeAsleep: '已安睡時長',
+        lblCurrentStatus: '目前狀態：',
+        nightSleepNotice: '🌙 放下手機安睡中。請勿切換分頁或頻繁觸碰螢幕，以免驚擾露米！',
+        btnWakeUpAndSettle: '起床！結束睡眠並結算基礎能量',
+        subWakeUpAndSettle: '長按或點擊以結算今夜睡眠分數與基礎能量獲取',
+        modalEarlyExitTitle: '確定要現在退出回到營地嗎？',
+        modalEarlyExitDesc: '露米需要你穩定的陪伴入眠來維持體力。若現在中斷睡眠，會被判定為「深夜未入睡/玩手機」，露米將流失 -25 HP 生命值 與 -60 ⚡ 基礎能量！',
+        btnKeepSleeping: '繼續安睡（陪露米好眠）',
+        btnConfirmExit: '放棄睡眠・確認回到營地',
+        badgePetExhausted: '⚠️ 露米體力枯竭',
+        rebirthModalTitle: '露米退化成了【星光幼萌蛋】！',
+        rebirthModalDesc: '因為長期缺乏充足睡眠，露米的生命值降為 0，體力不支進入了休眠保護狀態，等級已退化回 Lv.1！今晚請務必準時放下手機入睡，唯有健康的睡眠才能重新喚醒並孵化露米！',
+        btnRebirthAcknowledge: '我記住了，今晚一定準時睡覺拯救露米！',
+        badgeNightmareAlert: '⚠️ 檢測到深夜手機藍光！',
+        nightmareAlertTitle: '露米正在做噩夢！星光消散中...',
+        nightmareAlertDesc: '您剛才切換了應用或頻繁點擊了螢幕！露米感應到了強烈的藍光刺激，睡眠類型正大幅滑向「淺淺入夢」，睡意星光之力正在流失！',
+        nightmareDormNotice: '寢室連帶警報：室友的寵物也感受到了驚擾！',
+        btnRescuePet: '立即放下手機・安撫露米入眠',
+        morningBadge: '晨間睡眠研究 (Morning Sleep Research)',
+        morningTitle: '今日睡眠成果結算',
+        lblSleepDuration: '實測睡眠時長:',
+        lblInterruptions: '中斷滑手機:',
+        lblOverallScore: '本次睡眠綜合評分',
+        unitPts: '分',
+        lblDiagnosisTitle: '睡眠品質診斷分析',
+        lblSleepTypeTitle: '睡眠型態：',
+        lblEnergyConversionTitle: '健康睡眠轉換 ➔ 露米基礎能量',
+        lblScorePrefix: '評分',
+        lblScoreSuffix: '分',
+        lblTotalEnergyNotice: '🌟 露米目前累積基礎能量達',
+        lblVisitorFoundTitle: '發現睡姿！點擊訪客拍照收錄圖鑑',
+        lblClaimPrefix: '收下研究獎勵 (',
+        lblClaimSuffix: '睡眠星星)・返回營地',
+        btnCancel: '取消',
+        btnConfirm: '確認',
+        petStatusEnergetic: '精神飽滿',
+        petStatusDeepSleep: '充電熟睡中',
+        petStatusDreaming: '安穩入夢',
+        petStatusDrained: '熬夜無精打采',
+        tagSleeping: '😴 熟睡中',
+        tagScrolling: '📱 深夜刷屏中',
+        tagAwake: '☀️ 精神飽滿',
+        cameraTagPhoto: '📸 點擊拍照',
+        cameraTagDone: '✓ 已拍照登記',
+        visitorsRemainSuffix: ' 隻待研究',
+        visitorsAllDone: '全部研究完成！🎉',
+        toastNeedStars: '⭐ 睡眠星星不足！請今夜好好早睡累積',
+        toastNeedStarsSoup: '⭐ 睡眠星星不足！製作暖湯需要 35 ⭐',
+        toastLevelUp: '🌟 露米升到 Lv.',
+        toastPetHug: '💖 呼嚕嚕~ 露米好喜歡你的撫摸與擁抱！',
+        toastRoommateAdded: '🎉 已成功邀請搭子綁定寢室！',
+        toastPillowAllGood: '室友全員皆在好眠！雙倍加成維持中 ✨',
+        toastPillowSent: '🛏️ 已向室友發送小睡枕！室友已安心就寢',
+        toastDecorBought: '🎉 成功添置造景至宿舍花園！',
+        toastClaimStars: '🎉 收穫睡眠星星！'
+      },
+      en: {
+        langBtn: '中文',
+        badgeMainCamp: 'Main Camp',
+        lblBaseEnergy: 'Base Energy:',
+        campTargetTitle: "Tonight's Sleep Energy Target",
+        campTargetFullScore: 'Reach Max Score',
+        camp100Pts: '100 Pts',
+        campTargetGrant: '➔ Grants Lumi',
+        campEnergyUnit: '⚡ Base Energy',
+        campStarTip: '✨ Starlight earned from sleep can buy berries',
+        campDormMultiplierNotice: 'Dorm Combo Boost: 2.0x (+2,000 ⚡)',
+        campInteractionTip: '👆 Pet or hug Lumi to bring joy • Only sleep restores vitality',
+        lblVitalityHp: 'Lumi Vitality (HP)',
+        lblExpProgress: 'Lumi Level EXP',
+        btnFeedBerry: 'Feed Star Berries',
+        subFeedBerry: 'Cost: 10 ⭐ (+80 ⚡ Base Energy)',
+        btnCookSoup: 'Cook Calming Soup',
+        subCookSoup: 'Cost: 35 ⭐ (+300 ⚡ Base Energy)',
+        btnStartSleepTracking: 'Go to Sleep (Start Sleep Tracking)',
+        sleepNoticeFooter: '※ Screen dims to dark OLED mode. Place phone on your bedside and rest.',
+        btnHug: '🤗 Hug',
+        dormComboSubtitle: 'All asleep on time • 2.0x Shared Energy Boost',
+        dormBoostActive: '2.0x Boost Active!',
+        dormBoostInactive: '1.0x Normal Mode',
+        lblRoommatesListTitle: 'Roommates & Pets Real-time Status',
+        btnAddRoommate: 'Add Roommate/Buddy',
+        pillowRescueNotice: 'Late-night scrolling drains garden energy',
+        btnSendPillow: '🛏️ Send Nap Pillow',
+        lblGardenBloom: 'Garden Bloom Level:',
+        gardenBloomLv: 'Lv.3 Firefly Oasis',
+        lblOwnedDecors: 'Owned Garden Decorations (Adorning the Meadow)',
+        gardenCanvasRoamTip: '🐾 Companions are strolling around their favorite decorations',
+        lblRoamingPetsTitle: 'Roaming Companions (Tap garden to watch them roam and nap)',
+        lblGardenShopTitle: 'Starlight Garden Workshop (Save stars for rare decors)',
+        lblCurrentHolding: 'Current Holding:',
+        btnDecorOwned: 'Owned',
+        btnDecorBuy: 'Acquire',
+        badgeLegendary: 'Mythic',
+        lblDexProgressTitle: 'Sleep Style Dex Progress',
+        lblDexUnit: 'Styles',
+        lblAccumulatedEnergy: 'Current Base Energy:',
+        filterAll: 'All',
+        filterSlumbering: 'Slumbering',
+        filterSnoozing: 'Snoozing',
+        filterDozing: 'Dozing',
+        unknownStyle: '??? Unknown Sleep Style',
+        statusUnlocked: '✓ Unlocked',
+        reqPrefix: 'Req.',
+        lblAvgSleepScore: 'Weekly Average Sleep Score',
+        lblScoreImprovement: '14% higher than last week',
+        lblStreakTitle: 'Consecutive On-Time Sleep',
+        lblStreakDaysUnit: 'Days Streak',
+        lblStreakBadge: 'Unlocked "Night Guardian"',
+        lblRecentLogsTitle: 'Recent Sleep Research Logs',
+        tabCamp: 'Camp',
+        tabGarden: 'Dorm Garden',
+        tabDex: 'Sleep Dex',
+        tabStats: 'Sleep Stats',
+        nightMonitoringActive: 'Sleep Tracking Active (OLED Blue-Light Shield)',
+        btnExitSleep: 'Exit to Camp',
+        lblTimeAsleep: 'Time Asleep',
+        lblCurrentStatus: 'Current State:',
+        nightSleepNotice: '🌙 Quietly resting. Do not switch tabs or tap the screen so Lumi is undisturbed!',
+        btnWakeUpAndSettle: 'Wake Up! Conclude Sleep & Settle Energy',
+        subWakeUpAndSettle: 'Click to calculate tonight\'s sleep score and base energy',
+        modalEarlyExitTitle: 'Are you sure you want to exit to Camp now?',
+        modalEarlyExitDesc: 'Lumi needs your steady presence to recover vitality. Quitting now will be flagged as "Late-night screen time", causing Lumi to lose -25 HP and -60 ⚡ Base Energy!',
+        btnKeepSleeping: 'Keep Sleeping (Stay with Lumi)',
+        btnConfirmExit: 'Give Up Sleep • Confirm Exit',
+        badgePetExhausted: '⚠️ Lumi Vitality Depleted',
+        rebirthModalTitle: 'Lumi devolved into a [Starlight Egg]!',
+        rebirthModalDesc: 'Due to severe lack of sleep, Lumi\'s HP reached 0 and entered hibernation, devolving back to Lv.1! Tonight, please put down your phone on time to re-hatch Lumi!',
+        btnRebirthAcknowledge: 'Understood! I will sleep on time tonight to rescue Lumi!',
+        badgeNightmareAlert: '⚠️ Late-Night Blue Light Detected!',
+        nightmareAlertTitle: 'Lumi is having a nightmare! Starlight fading...',
+        nightmareAlertDesc: 'You switched apps or frequently tapped the screen! Lumi sensed severe blue-light disturbance. Sleep type is sliding to "Dozing" and starlight is leaking!',
+        nightmareDormNotice: 'Dorm Alert: Roommates\' pets felt the disturbance too!',
+        btnRescuePet: 'Put Down Phone • Comfort Lumi to Sleep',
+        morningBadge: 'Morning Sleep Research',
+        morningTitle: "Today's Sleep Results Summary",
+        lblSleepDuration: 'Tracked Sleep Duration:',
+        lblInterruptions: 'Phone Screen Wakeups:',
+        lblOverallScore: 'Overall Sleep Score',
+        unitPts: 'Pts',
+        lblDiagnosisTitle: 'Sleep Quality Diagnostic Analysis',
+        lblSleepTypeTitle: 'Sleep Pattern:',
+        lblEnergyConversionTitle: 'Healthy Sleep Converted ➔ Lumi Base Energy',
+        lblScorePrefix: 'Score',
+        lblScoreSuffix: 'pts',
+        lblTotalEnergyNotice: '🌟 Lumi cumulative Base Energy reached',
+        lblVisitorFoundTitle: 'Sleep Styles Discovered! Tap visitors to photograph',
+        lblClaimPrefix: 'Claim Research Rewards (',
+        lblClaimSuffix: 'Starlight Points) • Return to Camp',
+        btnCancel: 'Cancel',
+        btnConfirm: 'Confirm',
+        petStatusEnergetic: 'Energetic',
+        petStatusDeepSleep: 'Deep Asleep',
+        petStatusDreaming: 'Sweet Dreams',
+        petStatusDrained: 'Drowsy & Drained',
+        tagSleeping: '😴 Sleeping',
+        tagScrolling: '📱 Late-Night Scrolling',
+        tagAwake: '☀️ Wide Awake',
+        cameraTagPhoto: '📸 Tap to Photo',
+        cameraTagDone: '✓ Recorded',
+        visitorsRemainSuffix: ' to research',
+        visitorsAllDone: 'All researched! 🎉',
+        toastNeedStars: '⭐ Not enough starlight! Sleep well tonight to accumulate',
+        toastNeedStarsSoup: '⭐ Not enough starlight! Soup requires 35 ⭐',
+        toastLevelUp: '🌟 Lumi leveled up to Lv.',
+        toastPetHug: '💖 Purr~ Lumi loves your gentle touches and hugs!',
+        toastRoommateAdded: '🎉 Successfully invited buddy to connect dorm!',
+        toastPillowAllGood: 'All roommates are peacefully asleep! 2x Boost active ✨',
+        toastPillowSent: '🛏️ Nap pillow sent! Roommate has gone to sleep peacefully',
+        toastDecorBought: '🎉 Successfully placed decoration in Dorm Garden!',
+        toastClaimStars: '🎉 Earned starlight points!'
+      }
+    };
+
+    // ---------- 核心遊戲狀態 (GAME STATE) ----------
+    let defaultState = {
+      lang: 'zh',
+      petName_zh: '星光露米 Lumi',
+      petName_en: 'Starlight Lumi',
+      locationName_zh: '402 寢室星光草甸',
+      locationName_en: 'Dorm 402 Starlight Meadow',
+      petLevel: 1,
+      petExp: 420,
+      petExpMax: 600,
+      petHp: 100,        // 露米生命值 (0~100)
+      petHpMax: 100,
+      baseEnergy: 1250, // 核心基礎能量
+      starlight: 380,   // 睡覺獲得的星星
+      currentTab: 'camp',
+      isTrackingSleep: false,
+      sleepStartTime: null,
+      sleepDurationSeconds: 0,
+      sleepInterruptionCount: 0,
+      streakDays: 5,
+      soundEnabled: true,
+      dormComboActive: true,
+      roommates: [
+        { id: 1, name: 'Felix (我/Me)', role: 'user', status: 'awake', petType_zh: '露米兔子', petType_en: 'Lumi Bunny', petAvatar: '🐰', petStatusKey: 'petStatusEnergetic' },
+        { id: 2, name: 'Alex', role: 'buddy', status: 'sleeping', petType_zh: '星夜小狐', petType_en: 'Starlight Fox', petAvatar: '🦊', petStatusKey: 'petStatusDeepSleep' },
+        { id: 3, name: 'Sarah', role: 'roommate', status: 'sleeping', petType_zh: '懶懶小熊', petType_en: 'Slumber Bear', petAvatar: '🐻', petStatusKey: 'petStatusDreaming' },
+        { id: 4, name: 'Kevin', role: 'roommate', status: 'scrolling', petType_zh: '星空貓咪', petType_en: 'Cosmic Kitty', petAvatar: '🐱', petStatusKey: 'petStatusDrained' }
+      ],
+      gardenBloomLevel: 3,
+      // 擴充花園造景 (中英雙語品名與等級)
+      gardenDecors: [
+        { id: 'mushroom', name_zh: '夜光水晶菇', name_en: 'Bioluminescent Mushroom', cost: 80, unlocked: true, icon: '🍄', tier_zh: '常規', tier_en: 'Common' },
+        { id: 'fountain', name_zh: '星光祈願泉', name_en: 'Starlight Wishing Fountain', cost: 250, unlocked: true, icon: '⛲', tier_zh: '精緻', tier_en: 'Delicate' },
+        { id: 'lantern', name_zh: '螢火引路燈', name_en: 'Firefly Guiding Lantern', cost: 120, unlocked: true, icon: '🏮', tier_zh: '常規', tier_en: 'Common' },
+        { id: 'willow', name_zh: '月華垂柳樹', name_en: 'Moonlit Willow Tree', cost: 350, unlocked: true, icon: '🌳', tier_zh: '精緻', tier_en: 'Delicate' },
+        { id: 'pathway', name_zh: '月影螢石步道', name_en: 'Fluorite Stone Pathway', cost: 180, unlocked: false, icon: '🪨', tier_zh: '常規', tier_en: 'Common' },
+        { id: 'crystal', name_zh: '夢境星核叢', name_en: 'Dream Crystal Spire', cost: 500, unlocked: false, icon: '💎', tier_zh: '典雅', tier_en: 'Elegant' },
+        { id: 'stargate', name_zh: '好眠次元門', name_en: 'Sweet Dreams Portal', cost: 750, unlocked: false, icon: '⛩️', tier_zh: '高階', tier_en: 'Advanced' },
+        { id: 'astrocabin', name_zh: '銀河星光樹屋', name_en: 'Galaxy Starlight Treehouse', cost: 1500, unlocked: false, icon: '🏡', tier_zh: '奢華', tier_en: 'Luxury' },
+        { id: 'mooncradle', name_zh: '沉睡月影搖籃', name_en: 'Sleeping Moon Cradle', cost: 2400, unlocked: false, icon: '🌙', tier_zh: '史詩', tier_en: 'Epic' },
+        { id: 'cosmictemple', name_zh: '永恆星穹神殿', name_en: 'Eternal Astral Sanctuary', cost: 3800, unlocked: false, icon: '🏛️', tier_zh: '傳奇', tier_en: 'Mythic' }
+      ],
+      // 睡姿圖鑑 (中英雙語品名與睡姿)
+      sleepStyles: [
+        { id: 1, petName_zh: '深海巨鯨寶寶', petName_en: 'Deep Sea Baby Whale', type: 'slumbering', styleName_zh: '肚皮朝天呼嚕睡', styleName_en: 'Belly-Up Snore Nap', icon: '🐳', unlocked: true, baseEnergyReq: 1000 },
+        { id: 2, petName_zh: '岩石懶懶熊', petName_en: 'Lazy Boulder Bear', type: 'slumbering', styleName_zh: '大字型深深入眠', styleName_en: 'Sprawled-Out Slumber', icon: '🐻', unlocked: true, baseEnergyReq: 1200 },
+        { id: 3, petName_zh: '月光精靈鹿', petName_en: 'Moonlight Fairy Fawn', type: 'slumbering', styleName_zh: '蜷縮星環安睡', styleName_en: 'Curled Astral Snooze', icon: '🦌', unlocked: false, baseEnergyReq: 2500 },
+        { id: 4, petName_zh: '星夜小狐狸', petName_en: 'Nightfall Little Fox', type: 'snoozing', styleName_zh: '尾巴當被子暖睡', styleName_en: 'Tail-Blanket Doze', icon: '🦊', unlocked: true, baseEnergyReq: 800 },
+        { id: 5, petName_zh: '棉花糖幼犬', petName_en: 'Marshmallow Puppy', type: 'snoozing', styleName_zh: '星光流口水睡', styleName_en: 'Drooling Dream Nap', icon: '🐶', unlocked: true, baseEnergyReq: 1100 },
+        { id: 6, petName_zh: '夢境綿綿羊', petName_en: 'Dreamland Fluffy Sheep', type: 'snoozing', styleName_zh: '數綿羊自我催眠', styleName_en: 'Self-Counting Sheep Sleep', icon: '🐑', unlocked: false, baseEnergyReq: 2000 },
+        { id: 7, petName_zh: '飛天小松鼠', petName_en: 'Gliding Flying Squirrel', type: 'dozing', styleName_zh: '半睜眼戒備睡', styleName_en: 'Half-Awake Guard Nap', icon: '🐿️', unlocked: false, baseEnergyReq: 1500 },
+        { id: 8, petName_zh: '發光小夜鶯', petName_en: 'Luminous Nightingale', type: 'dozing', styleName_zh: '站立搖晃打瞌睡', styleName_en: 'Perched Swaying Nod', icon: '🦉', unlocked: false, baseEnergyReq: 1800 },
+        { id: 9, petName_zh: '頑皮電眼喵', petName_en: 'Cheeky Sparkle Cat', type: 'dozing', styleName_zh: '抱手機不肯放睡', styleName_en: 'Phone-Clutching Doze', icon: '🐱', unlocked: false, baseEnergyReq: 3000 },
+        { id: 10, petName_zh: '幻影小星龍', petName_en: 'Phantom Astral Dragon', type: 'slumbering', styleName_zh: '傳奇・極光環抱睡', styleName_en: 'Legendary Aurora Slumber', icon: '🐲', unlocked: false, baseEnergyReq: 5000 },
+        { id: 11, petName_zh: '星月企鵝王', petName_en: 'Astral Penguin King', type: 'snoozing', styleName_zh: '冰晶滑冰夢遊睡', styleName_en: 'Crystal Sleepwalk Slide', icon: '🐧', unlocked: false, baseEnergyReq: 4000 },
+        { id: 12, petName_zh: '銀河熊貓仙', petName_en: 'Galactic Panda Sage', type: 'dozing', styleName_zh: '啃星竹倒頭就睡', styleName_en: 'Star-Bamboo Collapse Sleep', icon: '🐼', unlocked: false, baseEnergyReq: 3500 }
+      ],
+      sleepLogs: [
+        { date_zh: '昨夜 10/24', date_en: 'Last Night 10/24', duration: '8h 15m', score: 98, type_zh: '深深入眠', type_en: 'Slumbering', energy: '+1,960 ⚡' },
+        { date_zh: '前天 10/23', date_en: '2 Days Ago 10/23', duration: '7h 45m', score: 91, type_zh: '安安穩穩', type_en: 'Snoozing', energy: '+910 ⚡' },
+        { date_zh: '大前天 10/22', date_en: '3 Days Ago 10/22', duration: '8h 30m', score: 100, type_zh: '深深入眠', type_en: 'Slumbering', energy: '+2,000 ⚡' }
+      ]
+    };
+
+    let game = JSON.parse(localStorage.getItem('sleep_pet_gamestate_v2')) || defaultState;
+    if (!game.lang) game.lang = 'zh';
+
+    let petSadTimer = 0;
+    let sleepInterval = null;
+
+    function t(key) {
+      const lang = game.lang || 'zh';
+      return (I18N[lang] && I18N[lang][key]) ? I18N[lang][key] : (I18N['zh'][key] || key);
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('sleep_pet_gamestate_v2', JSON.stringify(game));
+      } catch (e) {}
+    }
+
+    // ---------- 語言切換處理 ----------
+    function toggleLanguage() {
+      game.lang = game.lang === 'zh' ? 'en' : 'zh';
+      saveState();
+      applyLanguage();
+      playTone(659.25, 'triangle', 0.15);
+    }
+
+    function applyLanguage() {
+      const lang = game.lang;
+      document.documentElement.lang = lang === 'zh' ? 'zh-TW' : 'en';
+
+      // 語言切換按鈕顯示
+      const langLabel = document.getElementById('langLabel');
+      if (langLabel) langLabel.textContent = t('langBtn');
+
+      // 更新所有具備 data-i18n 的靜態標籤
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key && I18N[lang] && I18N[lang][key]) {
+          el.textContent = I18N[lang][key];
+        }
+      });
+
+      // 宿舍花園標題
+      const gardenTitle = document.getElementById('gardenHeaderTitle');
+      if (gardenTitle) {
+        gardenTitle.textContent = lang === 'zh' ? `${game.locationName_zh || '402 寢室'} 星光連線` : `${game.locationName_en || 'Dorm 402'} Starlight Link`;
+      }
+
+      // 更新動態元件
+      updateUI();
+      if (game.currentTab === 'garden') renderGardenView();
+      if (game.currentTab === 'dex') renderDexView('all');
+      if (game.currentTab === 'stats') renderStatsView();
+      lucide.createIcons();
+    }
+
+    // ---------- 對話氣泡與自訂名稱系統 ----------
+    function setPetDialogue(text, icon = '🐰') {
+      const textEl = document.getElementById('petDialogueText');
+      const iconEl = document.getElementById('petMoodIcon');
+      if (textEl) textEl.textContent = text;
+      if (iconEl) iconEl.textContent = icon;
+    }
+
+    // 自訂輸入彈窗控制（取代原生 prompt 以支援 iframe 與雙語）
+    let currentInputCallback = null;
+
+    function openCustomInput(title, defaultValue, callback) {
+      const modal = document.getElementById('customInputModal');
+      const titleEl = document.getElementById('customInputTitle');
+      const fieldEl = document.getElementById('customInputField');
+      titleEl.textContent = title;
+      fieldEl.value = defaultValue || '';
+      currentInputCallback = callback;
+      modal.classList.remove('hidden');
+      fieldEl.focus();
+    }
+
+    function cancelCustomInput() {
+      document.getElementById('customInputModal').classList.add('hidden');
+      currentInputCallback = null;
+    }
+
+    function confirmCustomInput() {
+      const fieldEl = document.getElementById('customInputField');
+      const val = fieldEl.value.trim();
+      document.getElementById('customInputModal').classList.add('hidden');
+      if (currentInputCallback && val !== '') {
+        currentInputCallback(val);
+      }
+      currentInputCallback = null;
+    }
+
+    function editPetName() {
+      const isZh = game.lang === 'zh';
+      const current = isZh ? (game.petName_zh || '星光露米 Lumi') : (game.petName_en || 'Starlight Lumi');
+      const promptTitle = isZh ? '請輸入露米的新暱稱：' : "Enter Lumi's new nickname:";
+      openCustomInput(promptTitle, current, (newVal) => {
+        if (isZh) {
+          game.petName_zh = newVal;
+        } else {
+          game.petName_en = newVal;
+        }
+        updateUI();
+        saveState();
+        playTone(659.25, 'sine', 0.15);
+      });
+    }
+
+    function editLocationName() {
+      const isZh = game.lang === 'zh';
+      const current = isZh ? (game.locationName_zh || '402 寢室星光草甸') : (game.locationName_en || 'Dorm 402 Starlight Meadow');
+      const promptTitle = isZh ? '請輸入您的營地/宿舍地點名稱：' : 'Enter your Camp/Dorm location:';
+      openCustomInput(promptTitle, current, (newVal) => {
+        if (isZh) {
+          game.locationName_zh = newVal;
+        } else {
+          game.locationName_en = newVal;
+        }
+        updateUI();
+        if (game.currentTab === 'garden') renderGardenView();
+        saveState();
+        playTone(659.25, 'sine', 0.15);
+      });
+    }
+
+    // 抱抱互動 (僅觸發開心表情與情緒反饋，不增加 HP 生命值，生命值僅能透過睡眠恢復)
+    function hugPet() {
+      const isZh = game.lang === 'zh';
+      playTone(783.99, 'sine', 0.2, 0.15);
+      triggerRandomHappyReaction();
+      showFloatingFx(isZh ? '💖 溫暖的抱抱！露米感到被愛與幸福' : '💖 Warm hug! Lumi feels loved & joyful', '#FB7185');
+      
+      if (game.petHp < 40) {
+        setPetDialogue(
+          isZh
+            ? '「（露米吸了吸鼻子蹭了蹭你的手心）嗚嗚... 抱著主人好安心，但露米需要真正的好眠才能恢復生命力... 今晚我們早點一起睡覺好不好？🥺」'
+            : '"(Lumi sniffs and nuzzles your palm) Hugging you feels so safe, but Lumi needs real sleep to recover vitality... Can we rest early tonight? 🥺"',
+          '🥺'
+        );
+      } else {
+        const sweetLines = isZh ? [
+          '「（露米在你懷裡開心地揉了揉眼睛，耳朵幸福地晃動）呼嚕嚕~ 主人的抱抱好舒服！今晚也要早早睡覺保持生命力喔~🥰」',
+          '「好溫暖的擁抱！露米的心情變成超級開心了，星光天線充滿了愛意~✨」',
+          '「（露米小手緊緊拉著你的手指）被主人擁抱最幸福了！今晚我會乖乖等你一起睡覺充電~🌸」'
+        ] : [
+          '"(Lumi rubs its eyes joyfully and wiggles its ears) Purr~ Hugging you is so cozy! Remember to sleep early tonight to recharge my vitality~ 🥰"',
+          '"Such a warm hug! Lumi\'s mood is super joyful, antenna sparkling with love~ ✨"',
+          '"(Lumi gently holds your finger) Being in your arms is the best! I will wait to sleep and recharge with you tonight~ 🌸"'
+        ];
+        setPetDialogue(sweetLines[Math.floor(Math.random() * sweetLines.length)], '🥰');
+      }
+      updateUI();
+      saveState();
+    }
+
+    // ---------- 中途退出睡眠回到營地之確認與處罰邏輯 ----------
+    function promptExitSleepEarly() {
+      document.getElementById('earlyExitConfirmModal').classList.remove('hidden');
+    }
+
+    function cancelExitSleepEarly() {
+      document.getElementById('earlyExitConfirmModal').classList.add('hidden');
+    }
+
+    function confirmExitSleepEarlyAction() {
+      document.getElementById('earlyExitConfirmModal').classList.add('hidden');
+      const isZh = game.lang === 'zh';
+      
+      game.isTrackingSleep = false;
+      if (sleepInterval) clearInterval(sleepInterval);
+      stopSleepWaveNoise();
+
+      document.getElementById('nightSleepScreen').classList.add('hidden');
+
+      // 懲罰：流失生命值與基礎能量
+      game.petHp = Math.max(0, game.petHp - 25);
+      game.baseEnergy = Math.max(0, game.baseEnergy - 60);
+      game.sleepInterruptionCount++;
+      petSadTimer = 220;
+
+      playNightmareWobble();
+
+      if (game.petHp <= 0) {
+        triggerPetRebirth();
+      } else {
+        const warnLines = isZh ? [
+          '「主人你怎麼又跑回去玩手機了... 露米最近都不怎麼能好好睡覺，肚子好餓、能量都在漏掉了啦... 快來抱抱我，我們一起去休息好不好？🥺」',
+          '「嗚嗚... 主人中途離開了，露米好睏好孤單... 沒有你的睡眠星光，露米的毛髮都要褪色了... 💔」',
+          '「感應到藍光刺眼... 露米的體力流失了 25 HP！主人請記得放下手機，露米快沒有力氣了啦... 😿」'
+        ] : [
+          '"Master, why did you go back to scrolling on your phone... Lumi hasn\'t slept well lately, my energy is draining... Hug me, let\'s rest together? 🥺"',
+          '"Sob sob... You left halfway. Lumi is so sleepy and lonely... Without your starlight, my fur is losing its luster... 💔"',
+          '"Blue light detected... Lumi lost 25 HP! Please put down the phone, Lumi is running out of energy... 😿"'
+        ];
+        setPetDialogue(warnLines[Math.floor(Math.random() * warnLines.length)], '🥺');
+        showFloatingFx(isZh ? '💔 中斷睡眠！露米流失 -25 HP & -60 ⚡ 基礎能量' : '💔 Interrupted sleep! Lost -25 HP & -60 ⚡ Base Energy', '#EF4444');
+      }
+
+      updateUI();
+      saveState();
+    }
+
+    function triggerPetRebirth() {
+      const isZh = game.lang === 'zh';
+      game.petLevel = 1;
+      game.petExp = 0;
+      game.petExpMax = 600;
+      game.petHp = 30;
+      document.getElementById('petRebirthModal').classList.remove('hidden');
+      setPetDialogue(
+        isZh
+          ? '「💔 露米能量耗竭退化成了星光幼萌蛋... 今晚請務必好好睡覺，才能重新喚醒我喔...」'
+          : '"💔 Lumi\'s energy ran out and devolved into a Starlight Egg... Please sleep well tonight to re-hatch me..."',
+        '🥚'
+      );
+      playNightmareWobble();
+      updateUI();
+      saveState();
+    }
+
+    function closeRebirthModal() {
+      document.getElementById('petRebirthModal').classList.add('hidden');
+    }
+
+    // ---------- WEB AUDIO API 原生音訊引擎 ----------
+    let audioCtx = null;
+    let sleepWaveNode = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playTone(freq, type = 'sine', duration = 0.25, gainVal = 0.12) {
+      if (!game.soundEnabled) return;
+      try {
+        initAudio();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn('Audio Tone Error:', e);
+      }
+    }
+
+    function playChimeFeed() {
+      if (!game.soundEnabled) return;
+      playTone(523.25, 'triangle', 0.12, 0.15);
+      setTimeout(() => playTone(659.25, 'triangle', 0.15, 0.15), 80);
+      setTimeout(() => playTone(783.99, 'sine', 0.2, 0.18), 160);
+      setTimeout(() => playTone(1046.5, 'sine', 0.25, 0.15), 240);
+    }
+
+    function playResearchFanfare() {
+      if (!game.soundEnabled) return;
+      const notes = [440, 554.37, 659.25, 880, 1108.73];
+      notes.forEach((f, idx) => {
+        setTimeout(() => playTone(f, 'triangle', 0.35, 0.2), idx * 110);
+      });
+    }
+
+    function playNightmareWobble() {
+      if (!game.soundEnabled) return;
+      playTone(220, 'sawtooth', 0.3, 0.2);
+      setTimeout(() => playTone(196, 'sawtooth', 0.3, 0.2), 120);
+      setTimeout(() => playTone(174.61, 'sawtooth', 0.4, 0.25), 240);
+    }
+
+    function startSleepWaveNoise() {
+      if (!game.soundEnabled) return;
+      initAudio();
+      if (sleepWaveNode) return;
+      try {
+        const bufferSize = audioCtx.sampleRate * 2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          data[i] = (b0 + b1 + b2 + b3) * 0.035;
+        }
+        sleepWaveNode = audioCtx.createBufferSource();
+        sleepWaveNode.buffer = buffer;
+        sleepWaveNode.loop = true;
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.06, audioCtx.currentTime);
+        sleepWaveNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        sleepWaveNode.start();
+      } catch (e) {
+        console.warn('Sleep Wave Error:', e);
+      }
+    }
+
+    function stopSleepWaveNoise() {
+      if (sleepWaveNode) {
+        try {
+          sleepWaveNode.stop();
+          sleepWaveNode.disconnect();
+        } catch (e) {}
+        sleepWaveNode = null;
+      }
+    }
+
+    function toggleAudioEngine() {
+      game.soundEnabled = !game.soundEnabled;
+      const btn = document.getElementById('audioToggleBtn');
+      const icon = document.getElementById('audioIcon');
+      if (game.soundEnabled) {
+        initAudio();
+        icon.setAttribute('data-lucide', 'volume-2');
+        btn.classList.add('text-amber-400', 'border-amber-500/50');
+        playTone(587.33, 'sine', 0.2);
+        if (game.isTrackingSleep) startSleepWaveNoise();
+      } else {
+        icon.setAttribute('data-lucide', 'volume-x');
+        btn.classList.remove('text-amber-400', 'border-amber-500/50');
+        stopSleepWaveNoise();
+      }
+      lucide.createIcons();
+      saveState();
+    }
+
+    // ---------- TAB 導航切換 ----------
+    function switchTab(tab) {
+      game.currentTab = tab;
+      const tabs = ['camp', 'garden', 'dex', 'stats'];
+      tabs.forEach(t => {
+        const viewEl = document.getElementById(`view-${t}`);
+        const navBtn = document.getElementById(`nav-btn-${t}`);
+        if (t === tab) {
+          viewEl.classList.remove('hidden');
+          navBtn.classList.remove('text-slate-400');
+          navBtn.classList.add('text-amber-400');
+        } else {
+          viewEl.classList.add('hidden');
+          navBtn.classList.remove('text-amber-400');
+          navBtn.classList.add('text-slate-400');
+        }
+      });
+      playTone(493.88, 'sine', 0.1);
+      lucide.createIcons();
+      if (tab === 'garden') renderGardenView();
+      if (tab === 'dex') renderDexView('all');
+      if (tab === 'stats') renderStatsView();
+    }
+
+    // ---------- 頂部與營地 UI 數值更新 ----------
+    function updateUI() {
+      const isZh = game.lang === 'zh';
+      document.getElementById('topPetLevel').textContent = game.petLevel;
+      document.getElementById('topPetName').textContent = isZh ? (game.petName_zh || '星光露米 Lumi') : (game.petName_en || 'Starlight Lumi');
+      document.getElementById('campLocationLabel').textContent = isZh ? (game.locationName_zh || '402 寢室星光草甸') : (game.locationName_en || 'Dorm 402 Starlight Meadow');
+      document.getElementById('topBaseEnergy').textContent = game.baseEnergy.toLocaleString();
+      document.getElementById('topStarlightPoints').textContent = game.starlight.toLocaleString();
+
+      // 生命值 (HP) 更新
+      const hpEl = document.getElementById('petHpLabel');
+      const hpFill = document.getElementById('petHpFill');
+      const moodPill = document.getElementById('petMoodPill');
+
+      if (hpEl && hpFill) {
+        hpEl.textContent = `${game.petHp} / ${game.petHpMax}`;
+        const hpPct = Math.max(0, Math.min(100, (game.petHp / game.petHpMax) * 100));
+        hpFill.style.width = `${hpPct}%`;
+
+        if (game.petHp <= 25) {
+          hpFill.className = 'h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-full transition-all duration-500';
+          hpEl.className = 'text-rose-400 font-bold text-[11px]';
+          if (moodPill) {
+            moodPill.className = 'px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-bold text-[10px] border border-rose-500/30';
+            moodPill.textContent = isZh ? '心情: 體力虛弱 😢' : 'Mood: Exhausted 😢';
+          }
+        } else if (game.petHp <= 60) {
+          hpFill.className = 'h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full transition-all duration-500';
+          hpEl.className = 'text-amber-300 font-bold text-[11px]';
+          if (moodPill) {
+            moodPill.className = 'px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold text-[10px] border border-amber-500/30';
+            moodPill.textContent = isZh ? '心情: 缺乏睡眠 🥱' : 'Mood: Drowsy 🥱';
+          }
+        } else {
+          hpFill.className = 'h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500';
+          hpEl.className = 'text-emerald-300 font-bold text-[11px]';
+          if (moodPill) {
+            moodPill.className = 'px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[10px] border border-emerald-500/30';
+            moodPill.textContent = isZh ? '心情: 精神滿滿 😊' : 'Mood: Radiant 😊';
+          }
+        }
+      }
+
+      // 能量預估
+      const baseReward = 1000;
+      const rewardEnergy = game.dormComboActive ? baseReward * 2 : baseReward;
+      document.getElementById('previewRewardEnergy').textContent = `+${rewardEnergy.toLocaleString()}`;
+
+      document.getElementById('petExpLabel').textContent = `${game.petExp} / ${game.petExpMax}`;
+      document.getElementById('petExpFill').style.width = `${Math.min(100, (game.petExp / game.petExpMax) * 100)}%`;
+
+      checkBaseEnergyUnlocks();
+    }
+
+    function checkBaseEnergyUnlocks() {
+      let anyUnlocked = false;
+      game.sleepStyles.forEach(s => {
+        if (!s.unlocked && game.baseEnergy >= s.baseEnergyReq) {
+          s.unlocked = true;
+          anyUnlocked = true;
+        }
+      });
+      if (anyUnlocked) saveState();
+    }
+
+    // ---------- 露米投餵與 3 種隨機開心表情動畫 ----------
+    let currentHappyReaction = null;
+    let happyReactionTimer = 0;
+    let lastReactionIndex = -1;
+
+    function triggerRandomHappyReaction() {
+      const reactions = ['bounce', 'hearts', 'sparkle'];
+      let nextIndex;
+      do {
+        nextIndex = Math.floor(Math.random() * reactions.length);
+      } while (nextIndex === lastReactionIndex && reactions.length > 1);
+      
+      lastReactionIndex = nextIndex;
+      currentHappyReaction = reactions[nextIndex];
+      happyReactionTimer = 140;
+    }
+
+    function feedBerries() {
+      if (game.starlight < 10) {
+        showFloatingFx(t('toastNeedStars'), '#EF4444');
+        playTone(220, 'sawtooth', 0.2);
+        return;
+      }
+      game.starlight -= 10;
+      game.baseEnergy += 80;
+      game.petExp += 35;
+      checkPetLevelUp();
+      playChimeFeed();
+      triggerRandomHappyReaction();
+
+      const isZh = game.lang === 'zh';
+      const msgs = isZh
+        ? ['🫐 嚼嚼~ 好甜的星光漿果！(+80 ⚡)', '🫐 露米開心得蹦蹦跳！(+80 ⚡)', '🫐 活力充沛，毛髮閃閃發光！(+80 ⚡)']
+        : ['🫐 Nom nom~ Delicious Star Berry! (+80 ⚡)', '🫐 Lumi is bouncing with joy! (+80 ⚡)', '🫐 Fully energized and radiant! (+80 ⚡)'];
+      showFloatingFx(msgs[lastReactionIndex] || '+80 ⚡', '#F59E0B');
+      updateUI();
+      saveState();
+    }
+
+    function cookSleepMeal() {
+      if (game.starlight < 35) {
+        showFloatingFx(t('toastNeedStarsSoup'), '#EF4444');
+        playTone(200, 'sawtooth', 0.2);
+        return;
+      }
+      game.starlight -= 35;
+      game.baseEnergy += 300;
+      game.petExp += 90;
+      checkPetLevelUp();
+      playChimeFeed();
+      triggerRandomHappyReaction();
+      showFloatingFx(game.lang === 'zh' ? '🍲 大成功！安神暖湯超美味 (+300 ⚡)' : '🍲 Delicious! Calming soup is warm (+300 ⚡)', '#10B981');
+      updateUI();
+      saveState();
+    }
+
+    function checkPetLevelUp() {
+      if (game.petExp >= game.petExpMax) {
+        game.petLevel++;
+        game.petExp -= game.petExpMax;
+        game.petExpMax = Math.round(game.petExpMax * 1.35);
+        playTone(880, 'triangle', 0.45);
+        showFloatingFx(`${t('toastLevelUp')}${game.petLevel}!`, '#8B5CF6');
+      }
+    }
+
+    function handlePetTap(e) {
+      game.petExp += 5;
+      checkPetLevelUp();
+      playTone(659.25, 'sine', 0.15);
+      triggerRandomHappyReaction();
+      showFloatingFx(t('toastPetHug'), '#FB7185');
+      updateUI();
+      saveState();
+    }
+
+    function showFloatingFx(text, color = '#F59E0B') {
+      const container = document.getElementById('petFloatingFx');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = 'absolute font-black text-xs px-3 py-1 rounded-full pointer-events-none transition-all duration-700 border backdrop-blur-md shadow-lg z-30';
+      el.style.left = '50%';
+      el.style.top = '65%';
+      el.style.transform = 'translate(-50%, -50%)';
+      el.style.color = color;
+      el.style.borderColor = color;
+      el.style.backgroundColor = 'rgba(8, 12, 22, 0.9)';
+      el.textContent = text;
+      container.appendChild(el);
+
+      setTimeout(() => {
+        el.style.top = '25%';
+        el.style.opacity = '0';
+      }, 30);
+
+      setTimeout(() => el.remove(), 750);
+    }
+
+    // ---------- 露米動態畫布 (HTML5 CANVAS - 美化升級版星光萌兔) ----------
+    const lumiCanvas = document.getElementById('lumiPetCanvas');
+    const lumiCtx = lumiCanvas.getContext('2d');
+    let lumiTick = 0;
+
+    // 輔助函式：繪製四角星光
+    function drawSparkleStar(ctx, x, y, r, color = '#FDE047') {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      for (let i = 0; i < 4; i++) {
+        const ang = (i * Math.PI) / 2;
+        ctx.lineTo(x + Math.cos(ang) * r, y + Math.sin(ang) * r);
+        ctx.lineTo(x + Math.cos(ang + Math.PI / 4) * (r * 0.35), y + Math.sin(ang + Math.PI / 4) * (r * 0.35));
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function renderLumiIdle() {
+      lumiTick += 0.045;
+      lumiCtx.clearRect(0, 0, lumiCanvas.width, lumiCanvas.height);
+      const cx = lumiCanvas.width / 2;
+      let cy = lumiCanvas.height / 2 + 12;
+      let breath = Math.sin(lumiTick) * 3.5;
+      let earWag = Math.sin(lumiTick * 1.5) * 0.08;
+      let eyeType = 'normal';
+      let blushScale = 1.0;
+      let bodyScaleX = 1.0;
+      let bodyScaleY = 1.0;
+
+      // 表情與狀態邏輯
+      if (game.petHp <= 0) {
+        eyeType = 'egg';
+      } else if (petSadTimer > 0 || game.petHp < 30) {
+        if (petSadTimer > 0) petSadTimer--;
+        cy += Math.sin(lumiTick * 1.2) * 2;
+        earWag = -0.22;
+        eyeType = 'sad_tear';
+        blushScale = 0.5;
+      } else if (happyReactionTimer > 0) {
+        happyReactionTimer--;
+        if (currentHappyReaction === 'bounce') {
+          cy -= Math.abs(Math.sin(lumiTick * 5)) * 14;
+          earWag = Math.sin(lumiTick * 10) * 0.25;
+          eyeType = 'happy_curved';
+          blushScale = 1.35;
+          drawSparkleStar(lumiCtx, cx - 45, cy - 65 + Math.sin(lumiTick * 3) * 6, 7, '#FBBF24');
+          drawSparkleStar(lumiCtx, cx + 45, cy - 70 - Math.sin(lumiTick * 3) * 6, 9, '#F472B6');
+        } else if (currentHappyReaction === 'hearts') {
+          bodyScaleX = 1.0 + Math.sin(lumiTick * 3) * 0.05;
+          bodyScaleY = 1.0 - Math.sin(lumiTick * 3) * 0.04;
+          eyeType = 'hearts';
+          blushScale = 1.5;
+          lumiCtx.font = '16px sans-serif';
+          lumiCtx.fillText('💖', cx - 42, cy - 45 - (140 - happyReactionTimer) * 0.25);
+          lumiCtx.fillText('💕', cx + 38, cy - 55 - (140 - happyReactionTimer) * 0.28);
+        } else if (currentHappyReaction === 'sparkle') {
+          breath = Math.sin(lumiTick * 2.2) * 4.5;
+          eyeType = 'sparkle';
+          blushScale = 1.4;
+          drawSparkleStar(lumiCtx, cx - 48, cy - 35 + Math.sin(lumiTick * 3) * 5, 8, '#FDE047');
+          drawSparkleStar(lumiCtx, cx + 42, cy - 40 + Math.cos(lumiTick * 3) * 5, 10, '#DDD6FE');
+        }
+      } else {
+        currentHappyReaction = null;
+      }
+
+      // 1. 地面柔和陰影
+      lumiCtx.save();
+      lumiCtx.fillStyle = 'rgba(8, 12, 28, 0.45)';
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(cx, cy + 54, 46 - Math.abs(breath) * 0.8, 11, 0, 0, Math.PI * 2);
+      lumiCtx.fill();
+      lumiCtx.restore();
+
+      // 2. 夢幻星塵光暈 (Multi-layer Celestial Aura)
+      const halo = lumiCtx.createRadialGradient(cx, cy + breath, 18, cx, cy + breath, 95);
+      if (eyeType === 'sad_tear') {
+        halo.addColorStop(0, 'rgba(100, 116, 139, 0.22)');
+        halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      } else if (currentHappyReaction === 'hearts') {
+        halo.addColorStop(0, 'rgba(251, 113, 133, 0.38)');
+        halo.addColorStop(0.6, 'rgba(192, 132, 252, 0.18)');
+        halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      } else {
+        halo.addColorStop(0, 'rgba(251, 191, 36, 0.3)');
+        halo.addColorStop(0.55, 'rgba(139, 92, 246, 0.18)');
+        halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      }
+      lumiCtx.fillStyle = halo;
+      lumiCtx.beginPath();
+      lumiCtx.arc(cx, cy + breath, 95, 0, Math.PI * 2);
+      lumiCtx.fill();
+
+      // 環境浮動星塵微粒
+      for (let i = 0; i < 4; i++) {
+        const starX = cx + Math.sin(lumiTick * 0.8 + i * 1.6) * (65 + i * 5);
+        const starY = cy - 20 + Math.cos(lumiTick * 0.7 + i * 2) * 35 + breath;
+        drawSparkleStar(lumiCtx, starX, starY, 3 + (i % 2) * 2, i % 2 === 0 ? '#FDE047' : '#DDD6FE');
+      }
+
+      // 3. 蓬鬆小毛尾巴 (Soft Fluffy Tail)
+      lumiCtx.save();
+      lumiCtx.fillStyle = '#EDE9FE';
+      lumiCtx.beginPath();
+      lumiCtx.arc(cx - 44, cy + 32 + breath, 13, 0, Math.PI * 2);
+      lumiCtx.fill();
+      lumiCtx.fillStyle = '#FFFFFF';
+      lumiCtx.beginPath();
+      lumiCtx.arc(cx - 43, cy + 30 + breath, 10, 0, Math.PI * 2);
+      lumiCtx.fill();
+      lumiCtx.restore();
+
+      // 4. 精緻漸層長兔耳 (Graceful Elf Bunny Ears)
+      // 左耳
+      lumiCtx.save();
+      lumiCtx.translate(cx - 28, cy - 38 + breath);
+      lumiCtx.rotate(eyeType === 'sad_tear' ? -0.48 : (-0.18 + earWag));
+      // 外耳
+      const earGradL = lumiCtx.createLinearGradient(0, 10, 0, -50);
+      earGradL.addColorStop(0, '#FFFFFF');
+      earGradL.addColorStop(0.7, '#EDE9FE');
+      earGradL.addColorStop(1, '#DDD6FE');
+      lumiCtx.fillStyle = earGradL;
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(0, -32, 13, 38, -0.05, 0, Math.PI * 2);
+      lumiCtx.fill();
+      // 內耳粉紅柔光
+      const earInnerL = lumiCtx.createLinearGradient(0, 0, 0, -50);
+      earInnerL.addColorStop(0, '#FBCFE8');
+      earInnerL.addColorStop(1, '#F472B6');
+      lumiCtx.fillStyle = earInnerL;
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(0, -32, 6.5, 26, -0.05, 0, Math.PI * 2);
+      lumiCtx.fill();
+      // 耳尖小亮點
+      lumiCtx.fillStyle = '#FFFFFF';
+      lumiCtx.beginPath();
+      lumiCtx.arc(0, -58, 2.5, 0, Math.PI * 2);
+      lumiCtx.fill();
+      lumiCtx.restore();
+
+      // 右耳 (附帶可愛的星星髮飾)
+      lumiCtx.save();
+      lumiCtx.translate(cx + 28, cy - 38 + breath);
+      lumiCtx.rotate(eyeType === 'sad_tear' ? 0.48 : (0.18 - earWag));
+      // 外耳
+      const earGradR = lumiCtx.createLinearGradient(0, 10, 0, -50);
+      earGradR.addColorStop(0, '#FFFFFF');
+      earGradR.addColorStop(0.7, '#EDE9FE');
+      earGradR.addColorStop(1, '#DDD6FE');
+      lumiCtx.fillStyle = earGradR;
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(0, -32, 13, 38, 0.05, 0, Math.PI * 2);
+      lumiCtx.fill();
+      // 內耳
+      const earInnerR = lumiCtx.createLinearGradient(0, 0, 0, -50);
+      earInnerR.addColorStop(0, '#FBCFE8');
+      earInnerR.addColorStop(1, '#F472B6');
+      lumiCtx.fillStyle = earInnerR;
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(0, -32, 6.5, 26, 0.05, 0, Math.PI * 2);
+      lumiCtx.fill();
+      // 右耳根部的星光金夾
+      drawSparkleStar(lumiCtx, 2, -14, 5.5, '#FBBF24');
+      lumiCtx.restore();
+
+      // 5. 軟萌棉花糖身體 (Pear-shaped Fluffy Body)
+      lumiCtx.save();
+      lumiCtx.translate(cx, cy + breath);
+      lumiCtx.scale(bodyScaleX, bodyScaleY);
+
+      // 下半身立體感
+      const lowerGrad = lumiCtx.createRadialGradient(0, 15, 10, 0, 20, 56);
+      lowerGrad.addColorStop(0, '#FFFFFF');
+      lowerGrad.addColorStop(0.75, '#EDE9FE');
+      lowerGrad.addColorStop(1, '#DDD6FE');
+      lumiCtx.fillStyle = lowerGrad;
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(0, 20, 50, 42, 0, 0, Math.PI * 2);
+      lumiCtx.fill();
+
+      // 頭部圓潤飽滿
+      const headGrad = lumiCtx.createRadialGradient(-10, -18, 8, 0, -15, 48);
+      headGrad.addColorStop(0, '#FFFFFF');
+      headGrad.addColorStop(0.8, '#F5F3FF');
+      headGrad.addColorStop(1, '#E0E7FF');
+      lumiCtx.fillStyle = headGrad;
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(0, -14, 46, 39, 0, 0, Math.PI * 2);
+      lumiCtx.fill();
+
+      // 肚肚奶油白軟毛 (Creamy Tummy Patch)
+      const bellyGrad = lumiCtx.createLinearGradient(0, 5, 0, 42);
+      bellyGrad.addColorStop(0, '#FFFFFF');
+      bellyGrad.addColorStop(1, '#FEF9C3');
+      lumiCtx.fillStyle = bellyGrad;
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(0, 22, 28, 22, 0, 0, Math.PI * 2);
+      lumiCtx.fill();
+
+      // 6. 前端軟萌小爪爪 (Tiny Adorable Paws)
+      lumiCtx.fillStyle = '#FFFFFF';
+      lumiCtx.shadowColor = 'rgba(139, 92, 246, 0.2)';
+      lumiCtx.shadowBlur = 6;
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(-16, 12, 7.5, 9.5, -0.2, 0, Math.PI * 2);
+      lumiCtx.ellipse(16, 12, 7.5, 9.5, 0.2, 0, Math.PI * 2);
+      lumiCtx.fill();
+      lumiCtx.shadowBlur = 0;
+
+      // 7. 腳腳小肉墊 (Feet & Cute Pink Pads)
+      lumiCtx.fillStyle = '#EDE9FE';
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(-23, 48, 12, 8, -0.15, 0, Math.PI * 2);
+      lumiCtx.ellipse(23, 48, 12, 8, 0.15, 0, Math.PI * 2);
+      lumiCtx.fill();
+      // 粉嫩肉墊
+      lumiCtx.fillStyle = 'rgba(244, 114, 182, 0.6)';
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(-23, 49, 6, 4, -0.15, 0, Math.PI * 2);
+      lumiCtx.ellipse(23, 49, 6, 4, 0.15, 0, Math.PI * 2);
+      lumiCtx.fill();
+      lumiCtx.restore();
+
+      // 8. 華麗星光睡帽 (Dreamy Velvet Celestial Nightcap)
+      lumiCtx.save();
+      const capGrad = lumiCtx.createLinearGradient(cx - 30, cy - 40 + breath, cx + 65, cy - 25 + breath);
+      capGrad.addColorStop(0, '#312E81');
+      capGrad.addColorStop(0.6, '#4338CA');
+      capGrad.addColorStop(1, '#6366F1');
+      lumiCtx.fillStyle = capGrad;
+      lumiCtx.beginPath();
+      lumiCtx.moveTo(cx - 32, cy - 36 + breath);
+      lumiCtx.quadraticCurveTo(cx - 10, cy - 64 + breath, cx + 25, cy - 48 + breath);
+      lumiCtx.quadraticCurveTo(cx + 52, cy - 70 + breath, cx + 66, cy - 22 + breath);
+      lumiCtx.quadraticCurveTo(cx + 38, cy - 35 + breath, cx + 18, cy - 40 + breath);
+      lumiCtx.closePath();
+      lumiCtx.fill();
+
+      // 睡帽雲朵白邊
+      lumiCtx.fillStyle = '#FFFFFF';
+      lumiCtx.beginPath();
+      lumiCtx.ellipse(cx - 8, cy - 40 + breath, 26, 7, 0.12, 0, Math.PI * 2);
+      lumiCtx.fill();
+
+      // 睡帽上的金色星月點綴
+      drawSparkleStar(lumiCtx, cx + 16, cy - 47 + breath, 4.5, '#FDE047');
+      lumiCtx.fillStyle = '#FDE047';
+      lumiCtx.beginPath();
+      lumiCtx.arc(cx + 36, cy - 44 + breath, 3, 0, Math.PI * 2);
+      lumiCtx.fill();
+
+      // 帽尖發光金色小星球
+      const ballGrad = lumiCtx.createRadialGradient(cx + 66, cy - 22 + breath, 2, cx + 66, cy - 22 + breath, 9);
+      ballGrad.addColorStop(0, '#FFFBEB');
+      ballGrad.addColorStop(0.5, '#FDE047');
+      ballGrad.addColorStop(1, '#F59E0B');
+      lumiCtx.fillStyle = ballGrad;
+      lumiCtx.beginPath();
+      lumiCtx.arc(cx + 66, cy - 22 + breath, 8, 0, Math.PI * 2);
+      lumiCtx.fill();
+      lumiCtx.restore();
+
+      // 9. 精緻五官與眼睛 (Anime-Chibi Celestial Eyes & Cute Expression)
+      if (eyeType === 'sad_tear') {
+        // 難過委屈水汪汪眼
+        lumiCtx.lineWidth = 3;
+        lumiCtx.strokeStyle = '#334155';
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx - 16, cy - 4 + breath, 7, 0.12 * Math.PI, 0.88 * Math.PI);
+        lumiCtx.stroke();
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx + 16, cy - 4 + breath, 7, 0.12 * Math.PI, 0.88 * Math.PI);
+        lumiCtx.stroke();
+
+        // 晶瑩流淚
+        lumiCtx.fillStyle = 'rgba(56, 189, 248, 0.85)';
+        lumiCtx.beginPath();
+        lumiCtx.ellipse(cx + 25, cy + 6 + breath + Math.sin(lumiTick * 3) * 2, 3, 5, 0.2, 0, Math.PI * 2);
+        lumiCtx.fill();
+
+        // 委屈扁嘴
+        lumiCtx.lineWidth = 2.5;
+        lumiCtx.strokeStyle = '#475569';
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx, cy + 12 + breath, 4, 1.15 * Math.PI, 1.85 * Math.PI);
+        lumiCtx.stroke();
+      } else if (eyeType === 'happy_curved') {
+        // 開心月牙瞇眼
+        lumiCtx.lineWidth = 3.5;
+        lumiCtx.strokeStyle = '#1E1B4B';
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx - 17, cy - 6 + breath, 8, 1.15 * Math.PI, 1.85 * Math.PI);
+        lumiCtx.stroke();
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx + 17, cy - 6 + breath, 8, 1.15 * Math.PI, 1.85 * Math.PI);
+        lumiCtx.stroke();
+
+        // 幸福小俏嘴 (開心張嘴帶粉舌)
+        lumiCtx.fillStyle = '#E11D48';
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx, cy + 4 + breath, 5, 0, Math.PI);
+        lumiCtx.fill();
+        lumiCtx.fillStyle = '#FDA4AF';
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx, cy + 6 + breath, 3, 0, Math.PI);
+        lumiCtx.fill();
+      } else if (eyeType === 'hearts') {
+        // 甜甜愛心眼
+        lumiCtx.font = '17px sans-serif';
+        lumiCtx.textAlign = 'center';
+        lumiCtx.fillText('💖', cx - 17, cy - 2 + breath);
+        lumiCtx.fillText('💖', cx + 17, cy - 2 + breath);
+
+        // 愛心甜蜜微笑
+        lumiCtx.fillStyle = '#E11D48';
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx, cy + 5 + breath, 4, 0, Math.PI);
+        lumiCtx.fill();
+      } else if (eyeType === 'sparkle') {
+        // 閃爍星星眼
+        drawSparkleStar(lumiCtx, cx - 17, cy - 7 + breath, 9, '#F59E0B');
+        drawSparkleStar(lumiCtx, cx + 17, cy - 7 + breath, 9, '#F59E0B');
+        drawSparkleStar(lumiCtx, cx - 17, cy - 7 + breath, 5, '#FEF08A');
+        drawSparkleStar(lumiCtx, cx + 17, cy - 7 + breath, 5, '#FEF08A');
+
+        lumiCtx.fillStyle = '#E11D48';
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx, cy + 4 + breath, 5.5, 0, Math.PI);
+        lumiCtx.fill();
+      } else {
+        // 正常狀態：水汪汪動漫精靈大眼 (Big Radiant Anime Eyes)
+        const isBlink = Math.sin(lumiTick * 0.8) > 0.97;
+        if (isBlink) {
+          lumiCtx.lineWidth = 3;
+          lumiCtx.strokeStyle = '#1E1B4B';
+          lumiCtx.beginPath();
+          lumiCtx.moveTo(cx - 24, cy - 6 + breath);
+          lumiCtx.quadraticCurveTo(cx - 17, cy - 2 + breath, cx - 10, cy - 6 + breath);
+          lumiCtx.stroke();
+          lumiCtx.beginPath();
+          lumiCtx.moveTo(cx + 10, cy - 6 + breath);
+          lumiCtx.quadraticCurveTo(cx + 17, cy - 2 + breath, cx + 24, cy - 6 + breath);
+          lumiCtx.stroke();
+        } else {
+          [-17, 17].forEach((eyeXOffset) => {
+            const ex = cx + eyeXOffset;
+            const ey = cy - 7 + breath;
+
+            // 瞳孔主體深紫
+            const eyeGrad = lumiCtx.createLinearGradient(ex, ey - 9, ex, ey + 9);
+            eyeGrad.addColorStop(0, '#1E1B4B');
+            eyeGrad.addColorStop(0.5, '#312E81');
+            eyeGrad.addColorStop(1, '#6366F1');
+            lumiCtx.fillStyle = eyeGrad;
+            lumiCtx.beginPath();
+            lumiCtx.ellipse(ex, ey, 7.5, 9, 0, 0, Math.PI * 2);
+            lumiCtx.fill();
+
+            // 瞳孔底部微光
+            lumiCtx.fillStyle = '#A5B4FC';
+            lumiCtx.beginPath();
+            lumiCtx.arc(ex, ey + 3, 4.5, 0.2 * Math.PI, 0.8 * Math.PI);
+            lumiCtx.fill();
+
+            // 主要大白光斑
+            lumiCtx.fillStyle = '#FFFFFF';
+            lumiCtx.beginPath();
+            lumiCtx.ellipse(ex - 2.5, ey - 3.5, 3.2, 3.8, -0.2, 0, Math.PI * 2);
+            lumiCtx.fill();
+
+            // 次要小星星高光
+            lumiCtx.beginPath();
+            lumiCtx.arc(ex + 2.5, ey + 3, 1.5, 0, Math.PI * 2);
+            lumiCtx.fill();
+
+            // 上眼瞼精緻長睫毛
+            lumiCtx.lineWidth = 1.8;
+            lumiCtx.strokeStyle = '#1E1B4B';
+            lumiCtx.beginPath();
+            lumiCtx.arc(ex, ey - 4, 8, 1.15 * Math.PI, 1.85 * Math.PI);
+            lumiCtx.stroke();
+          });
+        }
+
+        // 小巧粉嫩倒三角兔鼻
+        lumiCtx.fillStyle = '#FB7185';
+        lumiCtx.beginPath();
+        lumiCtx.moveTo(cx, cy - 0.5 + breath);
+        lumiCtx.lineTo(cx - 2.5, cy - 3 + breath);
+        lumiCtx.lineTo(cx + 2.5, cy - 3 + breath);
+        lumiCtx.closePath();
+        lumiCtx.fill();
+
+        // 萌萌三瓣貓兔嘴 (Cute "ω" Bunny Mouth)
+        lumiCtx.lineWidth = 2;
+        lumiCtx.strokeStyle = '#4C1D95';
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx - 3, cy + 2 + breath, 3, 0.1 * Math.PI, 0.9 * Math.PI);
+        lumiCtx.stroke();
+        lumiCtx.beginPath();
+        lumiCtx.arc(cx + 3, cy + 2 + breath, 3, 0.1 * Math.PI, 0.9 * Math.PI);
+        lumiCtx.stroke();
+      }
+
+      // 10. 軟萌漸層腮紅 (Soft Dreamy Petal Blush)
+      const blushGradL = lumiCtx.createRadialGradient(cx - 26, cy + 2 + breath, 1, cx - 26, cy + 2 + breath, 9 * blushScale);
+      blushGradL.addColorStop(0, 'rgba(251, 113, 133, 0.65)');
+      blushGradL.addColorStop(1, 'rgba(251, 113, 133, 0)');
+      lumiCtx.fillStyle = blushGradL;
+      lumiCtx.beginPath();
+      lumiCtx.arc(cx - 26, cy + 2 + breath, 9 * blushScale, 0, Math.PI * 2);
+      lumiCtx.fill();
+
+      const blushGradR = lumiCtx.createRadialGradient(cx + 26, cy + 2 + breath, 1, cx + 26, cy + 2 + breath, 9 * blushScale);
+      blushGradR.addColorStop(0, 'rgba(251, 113, 133, 0.65)');
+      blushGradR.addColorStop(1, 'rgba(251, 113, 133, 0)');
+      lumiCtx.fillStyle = blushGradR;
+      lumiCtx.beginPath();
+      lumiCtx.arc(cx + 26, cy + 2 + breath, 9 * blushScale, 0, Math.PI * 2);
+      lumiCtx.fill();
+
+      requestAnimationFrame(renderLumiIdle);
+    }
+
+    // ---------- 睡眠中安睡畫布 (SLEEPING PET CANVAS - 抱著發光小星甜美熟睡) ----------
+    const sleepingCanvas = document.getElementById('sleepingPetCanvas');
+    const sleepingCtx = sleepingCanvas.getContext('2d');
+    let sleepPetTick = 0;
+
+    function renderSleepingPet() {
+      if (!game.isTrackingSleep) return;
+      sleepPetTick += 0.035;
+      sleepingCtx.clearRect(0, 0, sleepingCanvas.width, sleepingCanvas.height);
+      const cx = sleepingCanvas.width / 2;
+      const cy = sleepingCanvas.height / 2 + 15;
+      const breath = Math.sin(sleepPetTick) * 4;
+
+      // 柔和安睡夜光暈
+      const halo = sleepingCtx.createRadialGradient(cx, cy + breath, 15, cx, cy + breath, 85);
+      halo.addColorStop(0, 'rgba(129, 140, 248, 0.35)');
+      halo.addColorStop(0.6, 'rgba(251, 191, 36, 0.15)');
+      halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      sleepingCtx.fillStyle = halo;
+      sleepingCtx.beginPath();
+      sleepingCtx.arc(cx, cy + breath, 85, 0, Math.PI * 2);
+      sleepingCtx.fill();
+
+      // 耳朵 (安穩垂落帶柔軟漸層)
+      sleepingCtx.save();
+      sleepingCtx.translate(cx - 26, cy - 30 + breath);
+      sleepingCtx.rotate(-0.38);
+      const earSlGrad = sleepingCtx.createLinearGradient(0, 0, 0, -35);
+      earSlGrad.addColorStop(0, '#FFFFFF');
+      earSlGrad.addColorStop(1, '#DDD6FE');
+      sleepingCtx.fillStyle = earSlGrad;
+      sleepingCtx.beginPath();
+      sleepingCtx.ellipse(0, -25, 11, 30, 0, 0, Math.PI * 2);
+      sleepingCtx.fill();
+      sleepingCtx.fillStyle = '#F472B6';
+      sleepingCtx.beginPath();
+      sleepingCtx.ellipse(0, -25, 5.5, 20, 0, 0, Math.PI * 2);
+      sleepingCtx.fill();
+      sleepingCtx.restore();
+
+      sleepingCtx.save();
+      sleepingCtx.translate(cx + 26, cy - 30 + breath);
+      sleepingCtx.rotate(0.38);
+      sleepingCtx.fillStyle = earSlGrad;
+      sleepingCtx.beginPath();
+      sleepingCtx.ellipse(0, -25, 11, 30, 0, 0, Math.PI * 2);
+      sleepingCtx.fill();
+      sleepingCtx.fillStyle = '#F472B6';
+      sleepingCtx.beginPath();
+      sleepingCtx.ellipse(0, -25, 5.5, 20, 0, 0, Math.PI * 2);
+      sleepingCtx.fill();
+      sleepingCtx.restore();
+
+      // 身體 (蜷縮成一團毛絨球)
+      sleepingCtx.save();
+      sleepingCtx.translate(cx, cy + breath);
+      const grad = sleepingCtx.createRadialGradient(0, 0, 8, 0, 0, 48);
+      grad.addColorStop(0, '#FFFFFF');
+      grad.addColorStop(0.85, '#EDE9FE');
+      grad.addColorStop(1, '#DDD6FE');
+      sleepingCtx.fillStyle = grad;
+      sleepingCtx.beginPath();
+      sleepingCtx.ellipse(0, 0, 48, 42, 0, 0, Math.PI * 2);
+      sleepingCtx.fill();
+
+      // 懷抱著的發光小星星抱枕 (Glowing Star Pillow)
+      drawSparkleStar(sleepingCtx, -2, 10, 15, '#FDE047');
+      drawSparkleStar(sleepingCtx, -2, 10, 8, '#FFFBEB');
+
+      // 小手手抱著抱枕
+      sleepingCtx.fillStyle = '#FFFFFF';
+      sleepingCtx.beginPath();
+      sleepingCtx.arc(-14, 10, 6, 0, Math.PI * 2);
+      sleepingCtx.arc(10, 10, 6, 0, Math.PI * 2);
+      sleepingCtx.fill();
+
+      sleepingCtx.restore();
+
+      // 星空睡帽 (溫柔蓋在頭上)
+      sleepingCtx.save();
+      sleepingCtx.fillStyle = '#312E81';
+      sleepingCtx.beginPath();
+      sleepingCtx.moveTo(cx - 26, cy - 28 + breath);
+      sleepingCtx.lineTo(cx + 14, cy - 32 + breath);
+      sleepingCtx.quadraticCurveTo(cx + 42, cy - 52 + breath, cx + 52, cy - 16 + breath);
+      sleepingCtx.closePath();
+      sleepingCtx.fill();
+      // 金黃星球
+      sleepingCtx.fillStyle = '#FBBF24';
+      sleepingCtx.beginPath();
+      sleepingCtx.arc(cx + 52, cy - 16 + breath, 6.5, 0, Math.PI * 2);
+      sleepingCtx.fill();
+      sleepingCtx.restore();
+
+      // 閉著眼甜美睡意線 (Peaceful Eyelashes)
+      sleepingCtx.lineWidth = 2.8;
+      sleepingCtx.strokeStyle = '#4338CA';
+      sleepingCtx.beginPath();
+      sleepingCtx.arc(cx - 15, cy - 3 + breath, 6.5, 0.15 * Math.PI, 0.85 * Math.PI);
+      sleepingCtx.stroke();
+      sleepingCtx.beginPath();
+      sleepingCtx.arc(cx + 15, cy - 3 + breath, 6.5, 0.15 * Math.PI, 0.85 * Math.PI);
+      sleepingCtx.stroke();
+
+      // 腮紅
+      sleepingCtx.fillStyle = 'rgba(251, 113, 133, 0.45)';
+      sleepingCtx.beginPath();
+      sleepingCtx.arc(cx - 22, cy + 4 + breath, 5, 0, Math.PI * 2);
+      sleepingCtx.arc(cx + 22, cy + 4 + breath, 5, 0, Math.PI * 2);
+      sleepingCtx.fill();
+
+      // 飄升的彩色漸層 Zzz 動畫
+      const zOffset = (sleepPetTick * 26) % 85;
+      const zAlpha = Math.max(0, 1 - zOffset / 85);
+      sleepingCtx.font = 'bold 16px sans-serif';
+      sleepingCtx.fillStyle = `rgba(251, 191, 36, ${zAlpha})`;
+      sleepingCtx.fillText('z', cx + 40 + Math.sin(sleepPetTick * 2) * 5, cy - 25 - zOffset);
+      sleepingCtx.font = 'bold 22px sans-serif';
+      sleepingCtx.fillStyle = `rgba(168, 85, 247, ${Math.max(0, 1 - (zOffset + 22) / 85)})`;
+      sleepingCtx.fillText('Z', cx + 52 + Math.sin(sleepPetTick * 2 + 1) * 6, cy - 48 - zOffset);
+
+      requestAnimationFrame(renderSleepingPet);
+    }
+
+    // ---------- 物理睡眠監測開啟與計時核心 ----------
+    function openNightSleepMode() {
+      game.isTrackingSleep = true;
+      game.sleepStartTime = Date.now();
+      game.sleepDurationSeconds = 0;
+      game.sleepInterruptionCount = 0;
+
+      document.getElementById('nightSleepScreen').classList.remove('hidden');
+      updateSleepTrackingTimer();
+
+      if (sleepInterval) clearInterval(sleepInterval);
+      sleepInterval = setInterval(updateSleepTrackingTimer, 1000);
+
+      startSleepWaveNoise();
+      requestAnimationFrame(renderSleepingPet);
+      playTone(523.25, 'sine', 0.3);
+      saveState();
+    }
+
+    function updateSleepTrackingTimer() {
+      if (!game.isTrackingSleep) return;
+      game.sleepDurationSeconds++;
+
+      const hrs = Math.floor(game.sleepDurationSeconds / 3600);
+      const mins = Math.floor((game.sleepDurationSeconds % 3600) / 60);
+      const secs = game.sleepDurationSeconds % 60;
+
+      const pad = n => String(n).padStart(2, '0');
+      const timeStr = `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+      document.getElementById('sleepStopwatchText').textContent = timeStr;
+
+      const now = new Date();
+      document.getElementById('sleepClockCurrent').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      // 實時推斷睡眠型態
+      const indEl = document.getElementById('liveSleepTypeIndicator');
+      const isZh = game.lang === 'zh';
+      if (game.sleepInterruptionCount > 1 || game.sleepDurationSeconds < 900) {
+        indEl.textContent = isZh ? '淺淺入夢 (Dozing)' : 'Dozing (Light)';
+        indEl.className = 'text-rose-300 font-bold';
+      } else if (game.sleepDurationSeconds < 14400) {
+        indEl.textContent = isZh ? '安安穩穩 (Snoozing)' : 'Snoozing (Restful)';
+        indEl.className = 'text-amber-300 font-bold';
+      } else {
+        indEl.textContent = isZh ? '深深入眠 (Slumbering)' : 'Slumbering (Deep)';
+        indEl.className = 'text-sky-300 font-bold';
+      }
+    }
+
+    // ---------- 防深夜玩手機藍光干預 (做噩夢警示) ----------
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && game.isTrackingSleep) {
+        game.sleepInterruptionCount++;
+        setTimeout(() => {
+          if (!document.hidden && game.isTrackingSleep) {
+            triggerNightmareAlert();
+          }
+        }, 300);
+      }
+    });
+
+    function triggerNightmareAlert() {
+      playNightmareWobble();
+      document.getElementById('nightmareAlertModal').classList.remove('hidden');
+    }
+
+    function rescuePetFromNightmare() {
+      document.getElementById('nightmareAlertModal').classList.add('hidden');
+      playTone(659.25, 'triangle', 0.25);
+      showFloatingFx(game.lang === 'zh' ? '🛡️ 已安撫露米！請繼續安睡' : '🛡️ Lumi comforted! Continue resting', '#34D399');
+    }
+
+    // ---------- 晨間睡眠研究結算 (嚴謹時長與分數體系) ----------
+    let generatedMorningVisitors = [];
+    let pendingMorningRewardStars = 15;
+
+    function evaluateSleepByRealDuration(seconds, interruptions) {
+      const minutes = Math.floor(seconds / 60);
+      const isZh = game.lang === 'zh';
+
+      let score = 0;
+      let grade = '';
+      let gradeClass = '';
+      let diagnosis = '';
+      let hpRecovery = 0;
+      let sleepType = 'dozing';
+      let typeLabel = '';
+      let badgeClass = '';
+      let visitorCount = 1;
+
+      if (minutes < 15) {
+        score = Math.max(3, Math.round((minutes / 15) * 12));
+        grade = isZh ? '等級 F（極短暫小憩 / 未入睡）' : 'Grade F (Micro-Doze / Under-rested)';
+        gradeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+        diagnosis = isZh
+          ? '⚠️ 睡眠時間嚴重不足 15 分鐘！這僅屬於打盹或秒醒狀態，大腦未經歷任何完整的深層睡眠週期。露米無法吸收到足夠星光，請給予自己充足睡眠！'
+          : '⚠️ Sleep duration was under 15 minutes! This counts only as a micro-doze. The brain underwent no restorative sleep cycles. Lumi could barely absorb any starlight—please prioritize your rest!';
+        hpRecovery = Math.min(5, Math.round(minutes * 0.4));
+        sleepType = 'dozing';
+        typeLabel = isZh ? '淺淺入夢型 (Dozing)' : 'Dozing Sleep Pattern';
+        badgeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/30';
+        visitorCount = 1;
+      } else if (minutes < 120) {
+        score = Math.round(15 + ((minutes - 15) / 105) * 18);
+        grade = isZh ? '等級 D（片段微睡 / 嚴重短缺）' : 'Grade D (Fragmented / Deficient)';
+        gradeClass = 'bg-orange-500/20 text-orange-300 border-orange-500/40';
+        diagnosis = isZh
+          ? '⚠️ 睡眠時長少於 2 小時。片段式淺睡無法消除神經系統疲勞，生長激素分泌微弱。露米處於虛弱打瞌睡狀態，僅吸收微量星光。'
+          : '⚠️ Sleep duration was under 2 hours. Segmented shallow sleep fails to relieve neuro-fatigue. Lumi remains weak and drowsy, absorbing only minimal starlight.';
+        hpRecovery = 15;
+        sleepType = 'dozing';
+        typeLabel = isZh ? '淺淺入夢型 (Dozing)' : 'Dozing Sleep Pattern';
+        badgeClass = 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+        visitorCount = 1;
+      } else if (minutes < 270) {
+        score = Math.round(35 + ((minutes - 120) / 150) * 24);
+        grade = isZh ? '等級 C（熬夜警戒 / 睡眠不足）' : 'Grade C (Late-Night / Insufficient)';
+        gradeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+        diagnosis = isZh
+          ? '🥱 睡眠時間不足 4.5 小時。深層睡眠比例偏低，白天容易產生注意力不集中與焦慮感。露米吸收了部分能量，但仍渴望今晚早點休息！'
+          : '🥱 Sleep under 4.5 hours. Deep sleep ratio is deficient, increasing daytime anxiety and brain fog. Lumi absorbed partial energy but urgently needs earlier sleep tonight!';
+        hpRecovery = 35;
+        sleepType = 'snoozing';
+        typeLabel = isZh ? '安安穩穩型 (Snoozing)' : 'Snoozing Sleep Pattern';
+        badgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+        visitorCount = 2;
+      } else if (minutes < 390) {
+        score = Math.round(60 + ((minutes - 270) / 120) * 22);
+        grade = isZh ? '等級 B（基礎達標 / 仍需充沛）' : 'Grade B (Baseline / Fair)';
+        gradeClass = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40';
+        diagnosis = isZh
+          ? '💤 達到基本休眠下限，身體機能獲得初步放鬆，但仍未達黃金健康睡眠標準。露米活力恢復良好，若能再多睡 1.5 小時將能吸引更稀有的訪客！'
+          : '💤 Met minimum baseline rest. Bodily functions initiated light recovery, but still short of the golden standard. Lumi recovered well; 1.5 more hours would attract rarer visitors!';
+        hpRecovery = 65;
+        sleepType = 'snoozing';
+        typeLabel = isZh ? '安安穩穩型 (Snoozing)' : 'Snoozing Sleep Pattern';
+        badgeClass = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30';
+        visitorCount = 2;
+      } else if (minutes <= 540) {
+        score = Math.min(100, Math.round(83 + ((minutes - 390) / 120) * 17));
+        grade = isZh ? '等級 S（黃金充分安睡）' : 'Grade S (Golden Rest / Optimal)';
+        gradeClass = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+        diagnosis = isZh
+          ? '🌟 完美的黃金睡眠！完整經歷了 4~5 個優質睡眠週期，大腦與身體獲得極致修復，全額能量轉換達成，露米活力滿載，花園星光充盈！'
+          : '🌟 Perfect Golden Sleep! Completed 4–5 restorative sleep cycles. Full cellular and cognitive restoration achieved. Lumi is bursting with vitality and starlight!';
+        hpRecovery = 100;
+        sleepType = 'slumbering';
+        typeLabel = isZh ? '深深入眠型 (Slumbering)' : 'Slumbering Sleep Pattern';
+        badgeClass = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
+        visitorCount = 3;
+      } else {
+        score = Math.max(80, 100 - Math.round((minutes - 540) / 30) * 3);
+        grade = isZh ? '等級 A（睡眠充裕 / 略微偏長）' : 'Grade A (Plentiful / Extended)';
+        gradeClass = 'bg-teal-500/20 text-teal-300 border-teal-500/40';
+        diagnosis = isZh
+          ? '🌙 睡眠時間充足！但若單次睡眠過長容易引發生理慣性與短暫昏睡感，建議維持規律的 7.5~8.5 小時作息。'
+          : '🌙 Plentiful rest! However, oversleeping can cause mild sleep inertia. A consistent 7.5–8.5 hour window is recommended for peak cognitive agility.';
+        hpRecovery = 95;
+        sleepType = 'slumbering';
+        typeLabel = isZh ? '深深入眠型 (Slumbering)' : 'Slumbering Sleep Pattern';
+        badgeClass = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
+        visitorCount = 3;
+      }
+
+      const interruptionPenalty = interruptions * 12;
+      const finalScore = Math.max(1, score - interruptionPenalty);
+
+      return {
+        minutes,
+        finalScore,
+        grade,
+        gradeClass,
+        diagnosis,
+        hpRecovery,
+        sleepType,
+        typeLabel,
+        badgeClass,
+        visitorCount
+      };
+    }
+
+    function endSleepAndStartMorningResearch() {
+      const isZh = game.lang === 'zh';
+      game.isTrackingSleep = false;
+      if (sleepInterval) clearInterval(sleepInterval);
+      stopSleepWaveNoise();
+
+      document.getElementById('nightSleepScreen').classList.add('hidden');
+      document.getElementById('morningResearchModal').classList.remove('hidden');
+
+      const evalRes = evaluateSleepByRealDuration(game.sleepDurationSeconds, game.sleepInterruptionCount);
+
+      const hrs = Math.floor(evalRes.minutes / 60);
+      const remainMins = evalRes.minutes % 60;
+      document.getElementById('reportSleepDuration').textContent = isZh ? `${hrs}小時${remainMins}分` : `${hrs}h ${remainMins}m`;
+      document.getElementById('reportInterruptionCount').textContent = `${game.sleepInterruptionCount} ${isZh ? '次' : 'times'}`;
+      document.getElementById('reportSleepScore').innerHTML = `${evalRes.finalScore} <span class="text-base text-slate-400">${t('unitPts')}</span>`;
+
+      const gradeBadge = document.getElementById('reportSleepGradeBadge');
+      gradeBadge.textContent = evalRes.grade;
+      gradeBadge.className = `inline-block px-3 py-0.5 rounded-full text-xs font-black ${evalRes.gradeClass}`;
+      document.getElementById('reportSleepDiagnosisText').textContent = evalRes.diagnosis;
+
+      const typeBadge = document.getElementById('reportSleepTypeBadge');
+      typeBadge.textContent = evalRes.typeLabel;
+      typeBadge.className = `inline-block px-2.5 py-0.5 rounded-full text-xs font-black ${evalRes.badgeClass}`;
+
+      const dormMultiplier = game.dormComboActive ? 2.0 : 1.0;
+      const earnedBaseEnergy = Math.round(evalRes.finalScore * 10 * dormMultiplier);
+      game.baseEnergy += earnedBaseEnergy;
+
+      const prevHp = game.petHp;
+      game.petHp = Math.min(game.petHpMax, game.petHp + evalRes.hpRecovery);
+      const hpGained = game.petHp - prevHp;
+      const hpNotice = document.getElementById('reportHpRecoveryNotice');
+      if (evalRes.finalScore >= 80) {
+        hpNotice.textContent = isZh
+          ? `💖 露米生命力完全恢復滿血！(+${hpGained} HP，目前 ${game.petHp}/100)`
+          : `💖 Lumi vitality fully restored! (+${hpGained} HP, now ${game.petHp}/100)`;
+        hpNotice.className = 'text-[10px] font-bold text-emerald-400';
+        setPetDialogue(
+          isZh
+            ? '「早上好！昨晚睡得好香甜呀，露米的生命值完全恢復了，精神百倍！☀️」'
+            : '"Good morning! That sleep was so sweet! Lumi is fully revitalized and bursting with energy! ☀️"',
+          '☀️'
+        );
+      } else {
+        hpNotice.textContent = isZh
+          ? `⚠️ 睡眠偏短，露米生命力僅微幅恢復 +${hpGained} HP (目前 ${game.petHp}/100)`
+          : `⚠️ Short sleep! Lumi only recovered +${hpGained} HP (now ${game.petHp}/100)`;
+        hpNotice.className = 'text-[10px] font-bold text-amber-400';
+        setPetDialogue(
+          isZh
+            ? '「主人... 昨晚睡的時間太短了，露米好睏好睏，今晚我們早點一起休息好不好嘛...🥺」'
+            : '"Master... that sleep was far too brief. Lumi is still exhausted. Can we rest early tonight? 🥺"',
+          '🥱'
+        );
+      }
+
+      document.getElementById('reportCalcScore').textContent = evalRes.finalScore;
+      document.getElementById('reportCalcDormBonus').textContent = game.dormComboActive ? (isZh ? '2.0x 全寢加成' : '2.0x Dorm Combo') : (isZh ? '1.0x 一般' : '1.0x Normal');
+      document.getElementById('reportEarnedEnergy').textContent = `+${earnedBaseEnergy.toLocaleString()} ⚡ ${t('campEnergyUnit').replace('⚡', '').trim()}`;
+      document.getElementById('reportNewTotalEnergy').textContent = game.baseEnergy.toLocaleString();
+
+      pendingMorningRewardStars = Math.max(8, Math.round(evalRes.finalScore * 1.5));
+      document.getElementById('claimStarsRewardText').textContent = `+${pendingMorningRewardStars} ⭐`;
+
+      checkBaseEnergyUnlocks();
+      generateVisitorEncounters(evalRes.sleepType, evalRes.visitorCount);
+      playResearchFanfare();
+
+      game.sleepLogs.unshift({
+        date_zh: '今日清晨',
+        date_en: 'This Morning',
+        duration: `${hrs}h ${remainMins}m`,
+        score: evalRes.finalScore,
+        type_zh: evalRes.sleepType === 'slumbering' ? '深深入眠' : (evalRes.sleepType === 'snoozing' ? '安安穩穩' : '淺淺入夢'),
+        type_en: evalRes.sleepType === 'slumbering' ? 'Slumbering' : (evalRes.sleepType === 'snoozing' ? 'Snoozing' : 'Dozing'),
+        energy: `+${earnedBaseEnergy.toLocaleString()} ⚡`
+      });
+      saveState();
+      lucide.createIcons();
+    }
+
+    function generateVisitorEncounters(type, maxCount = 3) {
+      const candidates = game.sleepStyles.filter(s => s.type === type);
+      generatedMorningVisitors = [];
+      const count = Math.min(maxCount, candidates.length);
+
+      for (let i = 0; i < count; i++) {
+        const item = candidates[i];
+        generatedMorningVisitors.push({
+          ...item,
+          photographed: false,
+          x: 60 + i * (200 / Math.max(1, count - 1 || 1)),
+          y: 90 + (i % 2 === 0 ? 10 : -10)
+        });
+      }
+
+      document.getElementById('visitorFoundStatus').textContent = `${generatedMorningVisitors.length}${t('visitorsRemainSuffix')}`;
+      drawMorningVisitorsCanvas();
+    }
+
+    const morningCanvas = document.getElementById('morningVisitorsCanvas');
+    const morningCtx = morningCanvas.getContext('2d');
+
+    function drawMorningVisitorsCanvas() {
+      morningCtx.clearRect(0, 0, morningCanvas.width, morningCanvas.height);
+      morningCtx.fillStyle = '#0F172A';
+      morningCtx.fillRect(0, 0, morningCanvas.width, morningCanvas.height);
+
+      generatedMorningVisitors.forEach(v => {
+        morningCtx.fillStyle = v.photographed ? 'rgba(52, 211, 153, 0.2)' : 'rgba(251, 191, 36, 0.25)';
+        morningCtx.beginPath();
+        morningCtx.ellipse(v.x, v.y + 20, 32, 10, 0, 0, Math.PI * 2);
+        morningCtx.fill();
+
+        morningCtx.font = '32px sans-serif';
+        morningCtx.textAlign = 'center';
+        morningCtx.fillText(v.icon, v.x, v.y + 10);
+
+        morningCtx.font = 'bold 10px sans-serif';
+        morningCtx.fillStyle = v.photographed ? '#34D399' : '#FDE047';
+        morningCtx.fillText(v.photographed ? t('cameraTagDone') : t('cameraTagPhoto'), v.x, v.y + 36);
+      });
+    }
+
+    function handleVisitorClick(e) {
+      const rect = morningCanvas.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) * (morningCanvas.width / rect.width);
+      const clickY = (e.clientY - rect.top) * (morningCanvas.height / rect.height);
+
+      generatedMorningVisitors.forEach(v => {
+        const dist = Math.hypot(clickX - v.x, clickY - v.y);
+        if (dist < 40 && !v.photographed) {
+          v.photographed = true;
+          const dexEntry = game.sleepStyles.find(s => s.id === v.id);
+          if (dexEntry) dexEntry.unlocked = true;
+
+          const flash = document.getElementById('cameraFlashOverlay');
+          flash.style.opacity = '0.9';
+          playTone(1200, 'sine', 0.1);
+          setTimeout(() => flash.style.opacity = '0', 150);
+
+          saveState();
+          drawMorningVisitorsCanvas();
+        }
+      });
+
+      const remain = generatedMorningVisitors.filter(v => !v.photographed).length;
+      document.getElementById('visitorFoundStatus').textContent = remain === 0 ? t('visitorsAllDone') : `${remain}${t('visitorsRemainSuffix')}`;
+    }
+
+    function claimMorningResearchRewards() {
+      document.getElementById('morningResearchModal').classList.add('hidden');
+      game.starlight += pendingMorningRewardStars;
+      playTone(523.25, 'triangle', 0.2);
+      showFloatingFx(`${t('toastClaimStars')} (+${pendingMorningRewardStars} ⭐)`, '#10B981');
+      updateUI();
+      saveState();
+      switchTab('camp');
+    }
+
+    // ---------- TAB 2: 宿舍花園與室友羈絆 ----------
+    function promptAddRoommate() {
+      const isZh = game.lang === 'zh';
+      const promptTitle = isZh ? '請輸入新室友或搭子的暱稱：' : "Enter new roommate or buddy's name:";
+      openCustomInput(promptTitle, isZh ? '小星' : 'Starry', (name) => {
+        const petAvatars = ['🦊', '🐻', '🐰', '🐼', '🐱', '🐶'];
+        const petTypes_zh = ['星夜小狐', '懶懶小熊', '棉花小兔', '竹林熊貓', '電眼貓咪', '暖心小犬'];
+        const petTypes_en = ['Starlight Fox', 'Slumber Bear', 'Cotton Bunny', 'Bamboo Panda', 'Sparkle Cat', 'Warm Puppy'];
+        const randIdx = Math.floor(Math.random() * petAvatars.length);
+
+        const newMember = {
+          id: Date.now(),
+          name: name,
+          role: 'roommate',
+          status: 'sleeping',
+          petType_zh: petTypes_zh[randIdx],
+          petType_en: petTypes_en[randIdx],
+          petAvatar: petAvatars[randIdx],
+          petStatusKey: 'petStatusDeepSleep'
+        };
+
+        game.roommates.push(newMember);
+        saveState();
+        initGardenRoamPets();
+        renderGardenView();
+        playTone(783.99, 'triangle', 0.2);
+        showFloatingFx(`${t('toastRoommateAdded')} (${newMember.name})`, '#10B981');
+      });
+    }
+
+    function editRoommateName(id) {
+      const target = game.roommates.find(r => r.id === id);
+      if (!target) return;
+      const isZh = game.lang === 'zh';
+      const promptTitle = isZh ? `修改 ${target.name} 的暱稱：` : `Edit ${target.name}'s name:`;
+      openCustomInput(promptTitle, target.name, (newName) => {
+        target.name = newName;
+        saveState();
+        renderGardenView();
+        playTone(659.25, 'sine', 0.15);
+      });
+    }
+
+    function renderGardenView() {
+      const isZh = game.lang === 'zh';
+      const listEl = document.getElementById('roommateStatusList');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+
+      // 更新花園繁茂度
+      const bloomLevelEl = document.getElementById('gardenBloomLevel');
+      if (bloomLevelEl) bloomLevelEl.textContent = t('gardenBloomLv');
+
+      // 更新加成文字
+      const boostText = document.getElementById('dormBoostText');
+      if (boostText) boostText.textContent = game.dormComboActive ? t('dormBoostActive') : t('dormBoostInactive');
+
+      game.roommates.forEach(r => {
+        let badge = '';
+        if (r.status === 'sleeping') {
+          badge = `<span class="text-[10px] text-emerald-300 font-bold bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">${t('tagSleeping')}</span>`;
+        } else if (r.status === 'scrolling') {
+          badge = `<span class="text-[10px] text-rose-300 font-bold bg-rose-500/20 px-2 py-0.5 rounded-full border border-rose-500/30">${t('tagScrolling')}</span>`;
+        } else {
+          badge = `<span class="text-[10px] text-slate-300 font-bold bg-slate-800 px-2 py-0.5 rounded-full">${t('tagAwake')}</span>`;
+        }
+
+        const petTypeLabel = isZh ? (r.petType_zh || '夥伴') : (r.petType_en || 'Pet');
+        const petStatusLabel = t(r.petStatusKey || 'petStatusEnergetic');
+
+        const div = document.createElement('div');
+        div.className = 'p-2.5 rounded-2xl bg-nightSurface/80 border border-slate-800 flex items-center justify-between';
+        div.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">${r.petAvatar}</span>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-white">${r.name}</span>
+                <button onclick="editRoommateName(${r.id})" class="text-slate-500 hover:text-amber-300 p-0.5" title="Edit">
+                  <i data-lucide="pencil" class="w-2.5 h-2.5"></i>
+                </button>
+              </div>
+              <div class="text-[10px] text-slate-400">
+                ${isZh ? '寵物：' : 'Pet: '}<span class="text-purple-300 font-semibold">${petTypeLabel}</span> • <span class="text-slate-300">${petStatusLabel}</span>
+              </div>
+            </div>
+          </div>
+          <div>${badge}</div>
+        `;
+        listEl.appendChild(div);
+      });
+
+      renderOwnedDecorsGallery();
+      renderGardenRoamingPetsOverview();
+      renderGardenShop();
+      lucide.createIcons();
+    }
+
+    function renderOwnedDecorsGallery() {
+      const container = document.getElementById('ownedDecorsListContainer');
+      const summaryEl = document.getElementById('ownedDecorsSummary');
+      if (!container) return;
+      container.innerHTML = '';
+      const isZh = game.lang === 'zh';
+
+      const owned = game.gardenDecors.filter(d => d.unlocked);
+      if (summaryEl) summaryEl.textContent = isZh ? `${owned.length} 件展示中` : `${owned.length} Placed`;
+
+      if (owned.length === 0) {
+        container.innerHTML = `<span class="text-[10px] text-slate-500 italic">${isZh ? '尚無裝飾品，可於下方工坊添置' : 'No decorations yet. Acquire some below!'}</span>`;
+        return;
+      }
+
+      owned.forEach(d => {
+        const itemPill = document.createElement('div');
+        itemPill.className = 'flex items-center gap-1 px-2.5 py-1 rounded-xl bg-nightSurface border border-emerald-500/30 shrink-0 text-xs shadow-sm';
+        itemPill.innerHTML = `
+          <span class="text-base">${d.icon}</span>
+          <span class="text-[10px] font-bold text-slate-200">${isZh ? d.name_zh : d.name_en}</span>
+          <span class="text-[9px] px-1 rounded bg-emerald-500/20 text-emerald-300 font-extrabold ml-0.5">${isZh ? (d.tier_zh || '典雅') : (d.tier_en || 'Delicate')}</span>
+        `;
+        container.appendChild(itemPill);
+      });
+    }
+
+    function renderGardenRoamingPetsOverview() {
+      const container = document.getElementById('roamingPetsOverview');
+      if (!container) return;
+      container.innerHTML = '';
+      const isZh = game.lang === 'zh';
+
+      const pets = [
+        { name: isZh ? (game.petName_zh || '露米') : (game.petName_en || 'Lumi'), avatar: '🐰', act: isZh ? '追逐星火' : 'Fireflies' },
+        ...game.roommates.map(r => ({ name: r.name.split(' ')[0], avatar: r.petAvatar, act: t(r.petStatusKey).slice(0, 4) }))
+      ];
+
+      pets.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'p-1.5 rounded-xl bg-slate-900/80 border border-slate-800 text-center';
+        card.innerHTML = `
+          <div class="text-xl mb-0.5">${p.avatar}</div>
+          <div class="text-[10px] font-black text-white truncate">${p.name}</div>
+          <div class="text-[8px] text-purple-300 truncate">${p.act}</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function sendSleepPillow() {
+      const scroller = game.roommates.find(r => r.status === 'scrolling');
+      if (!scroller) {
+        showFloatingFx(t('toastPillowAllGood'), '#10B981');
+        return;
+      }
+      scroller.status = 'sleeping';
+      scroller.petStatusKey = 'petStatusDreaming';
+      playTone(659.25, 'triangle', 0.35);
+      showFloatingFx(t('toastPillowSent'), '#FB7185');
+      game.dormComboActive = true;
+      document.getElementById('dormBoostPill').classList.remove('hidden');
+      saveState();
+      renderGardenView();
+    }
+
+    // ---------- 花園中寵物自由遊走 (FREE-ROAMING) 動畫系統 ----------
+    const gardenCanvas = document.getElementById('gardenVisualCanvas');
+    const gardenCtx = gardenCanvas.getContext('2d');
+    let gardenTick = 0;
+    let gardenRoamPets = [];
+
+    function initGardenRoamPets() {
+      gardenRoamPets = [];
+      const w = gardenCanvas.width || 380;
+      const h = gardenCanvas.height || 210;
+      const isZh = game.lang === 'zh';
+
+      const allPets = [
+        { name: isZh ? (game.petName_zh || '露米') : (game.petName_en || 'Lumi'), avatar: '🐰' },
+        ...game.roommates.map(r => ({ name: r.name.split(' ')[0], avatar: r.petAvatar }))
+      ];
+
+      allPets.forEach((p) => {
+        gardenRoamPets.push({
+          name: p.name,
+          avatar: p.avatar,
+          x: 40 + Math.random() * (w - 80),
+          y: h * 0.55 + Math.random() * (h * 0.35),
+          targetX: 40 + Math.random() * (w - 80),
+          targetY: h * 0.55 + Math.random() * (h * 0.35),
+          speed: 0.4 + Math.random() * 0.4,
+          idleWait: Math.floor(Math.random() * 80),
+          stepTick: Math.random() * 10
+        });
+      });
+    }
+
+    function drawGardenVisualCanvas() {
+      gardenTick += 0.02;
+      gardenCtx.clearRect(0, 0, gardenCanvas.width, gardenCanvas.height);
+      const w = gardenCanvas.width;
+      const h = gardenCanvas.height;
+
+      const grad = gardenCtx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, '#090D18');
+      grad.addColorStop(0.35, '#111A33');
+      grad.addColorStop(0.68, '#064E3B');
+      grad.addColorStop(1, '#022C22');
+      gardenCtx.fillStyle = grad;
+      gardenCtx.fillRect(0, 0, w, h);
+
+      // 解鎖的造景飾品
+      const unlocked = game.gardenDecors.filter(d => d.unlocked);
+      unlocked.forEach((d, idx) => {
+        const x = 30 + idx * ((w - 60) / Math.max(1, unlocked.length - 1));
+        const y = h * 0.46 + Math.sin(gardenTick + idx * 1.5) * 2;
+        
+        gardenCtx.fillStyle = 'rgba(251, 191, 36, 0.12)';
+        gardenCtx.beginPath();
+        gardenCtx.arc(x, y - 4, 16, 0, Math.PI * 2);
+        gardenCtx.fill();
+
+        gardenCtx.font = '24px sans-serif';
+        gardenCtx.textAlign = 'center';
+        gardenCtx.fillText(d.icon, x, y);
+      });
+
+      // 寵物自由遊走
+      gardenRoamPets.forEach(pet => {
+        pet.stepTick += 0.1;
+        
+        if (pet.idleWait > 0) {
+          pet.idleWait--;
+        } else {
+          const dx = pet.targetX - pet.x;
+          const dy = pet.targetY - pet.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist < 4) {
+            pet.idleWait = Math.floor(60 + Math.random() * 120);
+            pet.targetX = 40 + Math.random() * (w - 80);
+            pet.targetY = h * 0.52 + Math.random() * (h * 0.38);
+          } else {
+            pet.x += (dx / dist) * pet.speed;
+            pet.y += (dy / dist) * pet.speed;
+          }
+        }
+
+        const hop = pet.idleWait > 0 ? Math.sin(pet.stepTick * 0.5) * 1.5 : Math.abs(Math.sin(pet.stepTick * 2)) * 3.5;
+
+        gardenCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+        gardenCtx.beginPath();
+        gardenCtx.ellipse(pet.x, pet.y + 4, 12, 4, 0, 0, Math.PI * 2);
+        gardenCtx.fill();
+
+        gardenCtx.font = '22px sans-serif';
+        gardenCtx.textAlign = 'center';
+        gardenCtx.fillText(pet.avatar, pet.x, pet.y - hop);
+
+        gardenCtx.font = 'bold 9px sans-serif';
+        gardenCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        gardenCtx.fillText(pet.name, pet.x, pet.y - hop - 16);
+      });
+
+      // 飛舞螢火蟲
+      for (let i = 0; i < 7; i++) {
+        const fx = (Math.sin(gardenTick * 0.7 + i) * 0.45 + 0.5) * w;
+        const fy = (Math.cos(gardenTick * 0.5 + i * 1.5) * 0.3 + 0.4) * h;
+        gardenCtx.fillStyle = '#FDE047';
+        gardenCtx.beginPath();
+        gardenCtx.arc(fx, fy, 2, 0, Math.PI * 2);
+        gardenCtx.fill();
+      }
+
+      if (game.currentTab === 'garden') {
+        requestAnimationFrame(drawGardenVisualCanvas);
+      }
+    }
+
+    function renderGardenShop() {
+      const container = document.getElementById('gardenShopItems');
+      const starsDisplay = document.getElementById('gardenShopCurrentStars');
+      if (starsDisplay) starsDisplay.textContent = game.starlight.toLocaleString();
+      if (!container) return;
+      container.innerHTML = '';
+      const isZh = game.lang === 'zh';
+
+      game.gardenDecors.forEach(item => {
+        const isExpensive = item.cost >= 1000;
+        const itemName = isZh ? item.name_zh : item.name_en;
+        const div = document.createElement('div');
+        div.className = `p-2.5 rounded-2xl border text-center relative ${
+          item.unlocked 
+            ? 'bg-slate-900/40 border-emerald-500/30' 
+            : isExpensive 
+              ? 'bg-gradient-to-b from-purple-950/40 to-slate-900/90 border-amber-500/40 shadow-md' 
+              : 'bg-slate-900/80 border-slate-800'
+        }`;
+
+        div.innerHTML = `
+          ${isExpensive && !item.unlocked ? `<div class="absolute -top-1.5 -right-1 text-[8px] bg-amber-500 text-slate-950 px-1.5 py-0.2 rounded-full font-black">${t('badgeLegendary')}</div>` : ''}
+          <div class="text-2xl mt-0.5">${item.icon}</div>
+          <div class="text-[11px] font-bold text-white mt-1 truncate" title="${itemName}">${itemName}</div>
+          <div class="text-[10px] text-amber-300 font-extrabold my-1">${item.cost.toLocaleString()} ⭐</div>
+          <button onclick="buyGardenDecor('${item.id}')" class="w-full py-1 rounded-xl text-[10px] font-extrabold transition-all active:scale-95 ${
+            item.unlocked 
+              ? 'bg-slate-800 text-slate-400 cursor-default' 
+              : game.starlight >= item.cost 
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm' 
+                : 'bg-slate-800/80 text-slate-500 hover:bg-slate-800'
+          }">
+            ${item.unlocked ? t('btnDecorOwned') : t('btnDecorBuy')}
+          </button>
+        `;
+        container.appendChild(div);
+      });
+      const count = game.gardenDecors.filter(d => d.unlocked).length;
+      document.getElementById('gardenDecorCount').textContent = isZh ? `已解鎖 ${count} 件飾品` : `${count} Decors Unlocked`;
+    }
+
+    function buyGardenDecor(id) {
+      const decor = game.gardenDecors.find(d => d.id === id);
+      if (!decor || decor.unlocked) return;
+      if (game.starlight < decor.cost) {
+        showFloatingFx(t('toastNeedStars'), '#EF4444');
+        playTone(220, 'sawtooth', 0.2);
+        return;
+      }
+      game.starlight -= decor.cost;
+      decor.unlocked = true;
+      playTone(659.25, 'triangle', 0.3);
+      showFloatingFx(t('toastDecorBought'), '#10B981');
+      updateUI();
+      saveState();
+      renderGardenView();
+    }
+
+    // ---------- TAB 3: 睡姿圖鑑渲染 (完全依照基礎能量總數解鎖) ----------
+    function filterDex(type) {
+      document.querySelectorAll('.dex-filter-btn').forEach(b => {
+        b.classList.remove('bg-lumiPurple', 'text-white');
+        b.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById(`dex-filter-${type}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-400');
+        activeBtn.classList.add('bg-lumiPurple', 'text-white');
+      }
+      renderDexView(type);
+    }
+
+    function renderDexView(filter = 'all') {
+      const grid = document.getElementById('sleepStyleDexGrid');
+      grid.innerHTML = '';
+      const isZh = game.lang === 'zh';
+
+      checkBaseEnergyUnlocks();
+
+      const list = filter === 'all' ? game.sleepStyles : game.sleepStyles.filter(s => s.type === filter);
+      const totalUnlocked = game.sleepStyles.filter(s => s.unlocked).length;
+      document.getElementById('dexUnlockedCount').textContent = totalUnlocked;
+      document.getElementById('dexTotalCount').textContent = game.sleepStyles.length;
+      document.getElementById('dexCurrentEnergy').textContent = game.baseEnergy.toLocaleString();
+      document.getElementById('dexPercentage').textContent = `${Math.round((totalUnlocked / game.sleepStyles.length) * 100)}%`;
+
+      list.forEach(item => {
+        const isUnlocked = item.unlocked;
+        const styleName = isZh ? item.styleName_zh : item.styleName_en;
+        const petName = isZh ? item.petName_zh : item.petName_en;
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-2xl border ${isUnlocked ? 'bg-nightSurface/90 border-slate-700 shadow-md' : 'bg-nightDark/80 border-slate-900 opacity-60'}`;
+        card.innerHTML = `
+          <div class="w-full h-24 rounded-xl bg-slate-950 flex flex-col items-center justify-center relative mb-2 border border-slate-800">
+            <span class="text-3xl ${isUnlocked ? '' : 'filter grayscale blur-xs'}">${item.icon}</span>
+            ${isUnlocked ? '' : '<i data-lucide="lock" class="w-5 h-5 text-slate-500 absolute"></i>'}
+          </div>
+          <div class="text-[11px] font-black text-white truncate">${isUnlocked ? styleName : t('unknownStyle')}</div>
+          <div class="text-[10px] text-slate-400 flex items-center justify-between mt-1">
+            <span>${petName}</span>
+            <span class="text-[9px] ${isUnlocked ? 'text-emerald-300' : 'text-amber-400'} font-bold">
+              ${isUnlocked ? t('statusUnlocked') : `${t('reqPrefix')} ${item.baseEnergyReq.toLocaleString()} ⚡`}
+            </span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      lucide.createIcons();
+    }
+
+    // ---------- TAB 4: 睡眠研究日誌 ----------
+    function renderStatsView() {
+      document.getElementById('statsStreakDays').textContent = game.streakDays;
+      const container = document.getElementById('sleepHistoryLogs');
+      container.innerHTML = '';
+      const isZh = game.lang === 'zh';
+
+      game.sleepLogs.forEach(log => {
+        const dateStr = isZh ? (log.date_zh || log.date) : (log.date_en || log.date);
+        const typeStr = isZh ? (log.type_zh || log.type) : (log.type_en || log.type);
+        const row = document.createElement('div');
+        row.className = 'p-3 rounded-2xl bg-nightSurface/70 border border-slate-800 flex items-center justify-between text-xs';
+        row.innerHTML = `
+          <div>
+            <div class="font-extrabold text-white">${dateStr}</div>
+            <div class="text-[10px] text-slate-400">${log.duration} • ${typeStr}</div>
+          </div>
+          <div class="text-right">
+            <div class="font-black text-amber-300 text-sm">${log.score} ${t('unitPts')}</div>
+            <div class="text-[10px] text-purple-300 font-bold">${log.energy || '+1,000 ⚡'}</div>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // ---------- 背景動態星空畫布 ----------
+    const starCanvas = document.getElementById('bgStarsCanvas');
+    const starCtx = starCanvas.getContext('2d');
+    let stars = [];
+
+    function initStarfield() {
+      starCanvas.width = window.innerWidth;
+      starCanvas.height = window.innerHeight;
+      stars = [];
+      for (let i = 0; i < 70; i++) {
+        stars.push({
+          x: Math.random() * starCanvas.width,
+          y: Math.random() * starCanvas.height,
+          r: Math.random() * 1.5 + 0.5,
+          alpha: Math.random(),
+          speed: Math.random() * 0.015 + 0.005
+        });
+      }
+    }
+    window.addEventListener('resize', initStarfield);
+
+    function drawStarfield() {
+      starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+      stars.forEach(s => {
+        s.alpha += s.speed;
+        if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+        starCtx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha) * 0.75})`;
+        starCtx.beginPath();
+        starCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        starCtx.fill();
+      });
+      requestAnimationFrame(drawStarfield);
+    }
+
+    // ---------- 系統初始化啟動 ----------
+    window.onload = function() {
+      initStarfield();
+      drawStarfield();
+      renderLumiIdle();
+      applyLanguage();
+      initGardenRoamPets();
+      renderGardenView();
+      lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
